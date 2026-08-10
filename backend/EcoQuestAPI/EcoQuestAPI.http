@@ -1,0 +1,6 @@
+@EcoQuestAPI_HostAddress = http://localhost:5228
+
+GET {{EcoQuestAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

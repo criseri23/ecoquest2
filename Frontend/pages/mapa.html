@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>EcoQuest - Mapa</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+  <link rel="stylesheet" href="../css/escanear.css?v=13">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="brand-bar">
+      <img src="../img/logoia-crop.png" alt="EcoQuest" class="brand-logo">
+      <div class="score-pill" aria-live="polite">
+        <span>XP</span>
+        <strong id="scoreTotal">0</strong>
+      </div>
+    </header>
+
+    <section class="map-panel" aria-label="Mapa de contenedores">
+      <div class="map-statusbar">
+        <div class="pending-pill">
+          <img src="../img/hoja-crop.png" alt="" aria-hidden="true">
+          <span id="pendingCount">0 pendientes</span>
+        </div>
+        <button id="locateButton" class="locate-button" type="button" aria-label="Usar ubicacion">
+          <img src="../img/mapa-crop.png" alt="" aria-hidden="true">
+        </button>
+      </div>
+
+      <div class="official-map-shell" aria-label="Mapa oficial con contenedores">
+        <div id="ecoMap" class="eco-map" aria-label="Mapa con contenedores oficiales"></div>
+        <div id="userLocationBadge" class="user-location-badge" hidden>
+          <span aria-hidden="true"></span>
+          Mi ubicacion
+        </div>
+        <button id="expandMapButton" class="expand-map-button" type="button">Ampliar mapa</button>
+      </div>
+
+      <article class="map-info-card" aria-live="polite">
+        <div class="map-card-icon" aria-hidden="true">
+          <img src="../img/mapa-crop.png" alt="">
+        </div>
+        <div class="map-card-copy">
+          <h1 id="selectedPointName">Contenedores oficiales</h1>
+          <p id="selectedPointAddress">Ciudad de Buenos Aires</p>
+          <p id="locationStatus">Toca el boton de ubicacion para encontrar el contenedor cercano.</p>
+          <div id="pendingPreview" class="pending-preview"></div>
+          <div class="map-actions">
+            <button id="verifyButton" class="verify-button" type="button">Verificar reciclaje</button>
+            <a href="escanear.html" class="scan-more-link">Escanear mas</a>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <div id="mapOverlay" class="map-overlay" role="dialog" aria-modal="true" aria-label="Mapa ampliado" hidden>
+      <div class="map-overlay-header">
+        <strong>Mapa de reciclado</strong>
+        <button id="closeMapButton" class="close-map-button" type="button">Cerrar</button>
+      </div>
+      <div id="expandedEcoMap" class="expanded-eco-map" aria-label="Mapa ampliado con contenedores oficiales"></div>
+    </div>
+
+    <nav class="bottom-nav" aria-label="Navegacion principal">
+      <a class="nav-item" href="inicio.html">
+        <img src="../img/inicio-crop.png" alt="" aria-hidden="true">
+        <span>Inicio</span>
+      </a>
+      <a class="nav-item" href="misiones.html">
+        <img src="../img/tareas-crop.png" alt="" aria-hidden="true">
+        <span>Misiones</span>
+      </a>
+      <a class="nav-item" href="ranking.html">
+        <img src="../img/ranking-crop.png" alt="" aria-hidden="true">
+        <span>Ranking</span>
+      </a>
+      <a class="nav-item active" href="mapa.html">
+        <img src="../img/mapa-crop.png" alt="" aria-hidden="true">
+        <span>Mapa</span>
+      </a>
+      <a class="nav-item" href="mascota.html">
+        <img src="../img/carpincho-crop.png" alt="" aria-hidden="true">
+        <span>Mascota</span>
+      </a>
+      <a class="nav-item" href="config.html">
+        <img src="../img/ajustes-crop.png" alt="" aria-hidden="true">
+        <span>Config</span>
+      </a>
+    </nav>
+  </main>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="../js/ecoquest-state.js?v=2"></script>
+  <script src="../js/mapa.js?v=4"></script>
+</body>
+</html>

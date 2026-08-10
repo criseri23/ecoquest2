@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>EcoQuest - Escanear</title>
+  <link rel="stylesheet" href="../css/escanear.css?v=11">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="brand-bar">
+      <img src="../img/logoia-crop.png" alt="EcoQuest" class="brand-logo">
+      <div class="score-pill" aria-live="polite">
+        <span>XP</span>
+        <strong id="scoreTotal">0</strong>
+      </div>
+    </header>
+
+    <section class="scan-panel" aria-label="Escaner de residuos">
+      <div class="camera-frame">
+        <video id="camera" autoplay playsinline muted></video>
+        <div id="cameraPlaceholder" class="camera-placeholder">
+          <img src="../img/hoja-crop.png" alt="" class="placeholder-icon" aria-hidden="true">
+          <p>Escanear un residuo<br>para analizar</p>
+        </div>
+      </div>
+
+      <button id="scanButton" class="primary-button" type="button">
+        <img src="../img/estrella-crop.png" alt="" aria-hidden="true">
+        Escanear con IA
+      </button>
+
+      <article id="resultCard" class="result-card">
+        <p class="result-label">
+          <img src="../img/hoja-crop.png" alt="" aria-hidden="true">
+          Resultado de Analisis
+        </p>
+        <div class="result-content">
+          <div class="result-icon" aria-hidden="true">
+            <img src="../img/hoja-crop.png" alt="">
+          </div>
+          <div class="result-copy">
+            <div class="result-heading">
+              <h3>Botella de plastico</h3>
+              <span>Reciclaje</span>
+            </div>
+            <p>Este residuo puede reciclarse. Asegurate de limpiarlo y depositarlo en el contenedor adecuado segun tu zona.</p>
+            <div class="result-reward">
+              <span>Contenedor verde</span>
+              <small>Verificar en mapa</small>
+            </div>
+            <a class="map-action" href="mapa.html">Abrir mapa</a>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <nav class="bottom-nav" aria-label="Navegacion principal">
+      <a class="nav-item" href="inicio.html">
+        <img src="../img/inicio-crop.png" alt="" aria-hidden="true">
+        <span>Inicio</span>
+      </a>
+      <a class="nav-item" href="misiones.html">
+        <img src="../img/tareas-crop.png" alt="" aria-hidden="true">
+        <span>Misiones</span>
+      </a>
+      <a class="nav-item" href="ranking.html">
+        <img src="../img/ranking-crop.png" alt="" aria-hidden="true">
+        <span>Ranking</span>
+      </a>
+      <a class="nav-item" href="mapa.html">
+        <img src="../img/mapa-crop.png" alt="" aria-hidden="true">
+        <span>Mapa</span>
+      </a>
+      <a class="nav-item" href="mascota.html">
+        <img src="../img/carpincho-crop.png" alt="" aria-hidden="true">
+        <span>Mascota</span>
+      </a>
+      <a class="nav-item" href="config.html">
+        <img src="../img/ajustes-crop.png" alt="" aria-hidden="true">
+        <span>Config</span>
+      </a>
+    </nav>
+  </main>
+
+  <script src="../js/ecoquest-state.js?v=2"></script>
+  <script src="../js/escanear.js?v=12"></script>
+</body>
+</html>
