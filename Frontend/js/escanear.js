@@ -9,6 +9,9 @@ const progressStore = window.EcoQuestStorage;
 let isScanning = false;
 let isCameraReady = false;
 const CAMERA_READY_TIMEOUT_MS = 12000;
+const ANALYSIS_TIMEOUT_MS = 75000;
+const CAPTURE_MAX_SIDE = 640;
+const CAPTURE_JPEG_QUALITY = 0.72;
 
 setButtonIdle();
 updateScoreHud();
@@ -181,8 +184,7 @@ async function captureCameraFrame() {
 
   const sourceWidth = camera.videoWidth || 640;
   const sourceHeight = camera.videoHeight || 480;
-  const maxSide = 768;
-  const scale = Math.min(1, maxSide / Math.max(sourceWidth, sourceHeight));
+  const scale = Math.min(1, CAPTURE_MAX_SIDE / Math.max(sourceWidth, sourceHeight));
   const width = Math.round(sourceWidth * scale);
   const height = Math.round(sourceHeight * scale);
 
@@ -193,7 +195,7 @@ async function captureCameraFrame() {
   const context = canvas.getContext("2d");
   context.drawImage(camera, 0, 0, width, height);
 
-  return canvas.toDataURL("image/jpeg", 0.82);
+  return canvas.toDataURL("image/jpeg", CAPTURE_JPEG_QUALITY);
 }
 
 function stopCameraStream(stream) {
@@ -296,7 +298,7 @@ async function scanWaste() {
   isScanning = true;
   setButtonLoading(true);
   const abortController = new AbortController();
-  const timeoutId = window.setTimeout(() => abortController.abort(), 25000);
+  const timeoutId = window.setTimeout(() => abortController.abort(), ANALYSIS_TIMEOUT_MS);
 
   try {
     const imageDataUrl = await captureCameraFrame();

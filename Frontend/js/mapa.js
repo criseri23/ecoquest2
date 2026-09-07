@@ -219,23 +219,24 @@ class EcoQuestMapController {
     this.points = [];
     this.currentPosition = null;
     this.selectedPoint = null;
+    this.selectedDistance = null;
     this.verifier = null;
     this.mainMap = null;
-    this.expandedMap = null;
     this.pointsLoaded = false;
+    this.isMapExpanded = false;
     this.elements = {
       appShell: document.querySelector(".app-shell"),
+      mapPanel: document.querySelector(".map-panel"),
       scoreTotal: document.querySelector("#scoreTotal"),
       pendingCount: document.querySelector("#pendingCount"),
       locateButton: document.querySelector("#locateButton"),
       verifyButton: document.querySelector("#verifyButton"),
       selectedPointName: document.querySelector("#selectedPointName"),
       selectedPointAddress: document.querySelector("#selectedPointAddress"),
+      selectedPointDistance: document.querySelector("#selectedPointDistance"),
       locationStatus: document.querySelector("#locationStatus"),
       pendingPreview: document.querySelector("#pendingPreview"),
       expandMapButton: document.querySelector("#expandMapButton"),
-      closeMapButton: document.querySelector("#closeMapButton"),
-      mapOverlay: document.querySelector("#mapOverlay"),
       userLocationBadge: document.querySelector("#userLocationBadge"),
     };
   }
@@ -264,11 +265,10 @@ class EcoQuestMapController {
   bindEvents() {
     this.elements.locateButton.addEventListener("click", () => this.requestLocation());
     this.elements.verifyButton.addEventListener("click", () => this.verifyRecycling());
-    this.elements.expandMapButton.addEventListener("click", () => this.openExpandedMap());
-    this.elements.closeMapButton.addEventListener("click", () => this.closeExpandedMap());
+    this.elements.expandMapButton.addEventListener("click", () => this.toggleExpandedMap());
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !this.elements.mapOverlay.hidden) {
+      if (event.key === "Escape" && this.isMapExpanded) {
         this.closeExpandedMap();
       }
     });
@@ -337,8 +337,9 @@ class EcoQuestMapController {
         .bindPopup(this.createPopup(point))
         .on("click", () => {
           this.selectedPoint = point;
-        this.renderSelectedPoint();
-      }));
+          this.selectedDistance = this.calculateSelectedDistance(point);
+          this.renderSelectedPoint();
+        }));
 
     if (typeof mapState.markerLayer.addLayers === "function") {
       mapState.markerLayer.addLayers(markers);
@@ -417,11 +418,13 @@ class EcoQuestMapController {
     if (!this.selectedPoint) {
       this.elements.selectedPointName.textContent = "Contenedores oficiales";
       this.elements.selectedPointAddress.textContent = "Ciudad de Buenos Aires";
+      this.elements.selectedPointDistance.textContent = "Distancia pendiente";
       return;
     }
 
     this.elements.selectedPointName.textContent = this.selectedPoint.name;
     this.elements.selectedPointAddress.textContent = this.selectedPoint.address;
+    this.elements.selectedPointDistance.textContent = this.formatSelectedDistance();
   }
 
   renderProgress() {
@@ -505,7 +508,7 @@ class EcoQuestMapController {
   }
 
   updateUserMarkers() {
-    [this.mainMap, this.expandedMap].forEach((mapState) => {
+    [this.mainMap].forEach((mapState) => {
       if (!mapState || !this.currentPosition) {
         return;
       }
@@ -539,6 +542,7 @@ class EcoQuestMapController {
     }
 
     this.selectedPoint = nearest.point;
+    this.selectedDistance = nearest.distance;
     this.renderSelectedPoint();
     this.focusMapsOnLocation(nearest.point);
 
@@ -557,7 +561,7 @@ class EcoQuestMapController {
   }
 
   focusMapsOnLocation(point) {
-    [this.mainMap, this.expandedMap].forEach((mapState) => {
+    [this.mainMap].forEach((mapState) => {
       if (!mapState || !this.currentPosition || !point) {
         return;
       }
@@ -603,6 +607,7 @@ class EcoQuestMapController {
     }
 
     this.selectedPoint = nearest.point;
+    this.selectedDistance = nearest.distance;
     this.renderSelectedPoint();
     this.focusMapsOnLocation(nearest.point);
 
@@ -623,22 +628,22 @@ class EcoQuestMapController {
     this.setStatus(`Reciclaje verificado: +${result.awardedPoints} XP.`);
   }
 
-  openExpandedMap() {
-    this.elements.mapOverlay.hidden = false;
-    this.elements.appShell.classList.add("is-map-open");
-
-    if (!this.expandedMap) {
-      this.expandedMap = this.createMap("expandedEcoMap");
-      this.addMarkersToMap(this.expandedMap);
-      this.updateUserMarkers();
-    }
-
-    if (!this.expandedMap) {
+  toggleExpandedMap() {
+    if (this.isMapExpanded) {
+      this.closeExpandedMap();
       return;
     }
 
+    this.openExpandedMap();
+  }
+
+  openExpandedMap() {
+    this.isMapExpanded = true;
+    this.elements.mapPanel.classList.add("is-map-expanded");
+    this.elements.expandMapButton.textContent = "Reducir mapa";
+
     setTimeout(() => {
-      this.expandedMap.map.invalidateSize();
+      this.mainMap.map.invalidateSize();
 
       if (this.currentPosition && this.selectedPoint) {
         this.focusMapsOnLocation(this.selectedPoint);
@@ -649,9 +654,49 @@ class EcoQuestMapController {
   }
 
   closeExpandedMap() {
-    this.elements.mapOverlay.hidden = true;
-    this.elements.appShell.classList.remove("is-map-open");
+    this.isMapExpanded = false;
+    this.elements.mapPanel.classList.remove("is-map-expanded");
+    this.elements.expandMapButton.textContent = "Expandir mapa";
+
+    setTimeout(() => {
+      if (this.mainMap) {
+        this.mainMap.map.invalidateSize();
+      }
+    }, 80);
+
     this.elements.expandMapButton.focus();
+  }
+
+  calculateSelectedDistance(point) {
+    if (!this.currentPosition || !this.verifier || !point) {
+      return null;
+    }
+
+    return this.verifier.calculateMeters(this.currentPosition, point);
+  }
+
+  formatSelectedDistance() {
+    if (!this.selectedPoint) {
+      return "Distancia pendiente";
+    }
+
+    if (!this.currentPosition || this.selectedDistance === null) {
+      return "Activa ubicacion para calcular distancia";
+    }
+
+    return `Estas a ${this.verifier.formatMeters(this.selectedDistance)}`;
+  }
+
+  createExpandedStatus() {
+    if (!this.currentPosition || this.selectedDistance === null) {
+      return "Primero activa tu ubicacion para ver que tan cerca estas.";
+    }
+
+    if (this.verifier.isInsideVerificationZone(this.selectedDistance)) {
+      return "Estas dentro de la zona para verificar el reciclaje.";
+    }
+
+    return `Acercate al ${this.describeTarget(this.selectedPoint)} para poder verificar.`;
   }
 
   describeTarget(point) {

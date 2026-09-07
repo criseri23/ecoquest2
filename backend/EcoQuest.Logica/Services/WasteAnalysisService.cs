@@ -38,27 +38,95 @@ public sealed class WasteAnalysisService : IWasteAnalysisService
                 "Configura la variable de entorno GEMINI_API_KEY antes de usar el analisis real.");
         }
 
-        var configuredModel = GetSecret("Gemini:Model", "GEMINI_MODEL");
-        var model = string.IsNullOrWhiteSpace(configuredModel)
-            ? "gemini-flash-latest"
-            : configuredModel.Trim();
-
         var client = httpClientFactory.CreateClient();
         var payload = CreateGeminiPayload(imageInput);
-        var requestUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{Uri.EscapeDataString(model)}:generateContent?key={Uri.EscapeDataString(apiKey)}";
-        using var geminiRequest = new HttpRequestMessage(HttpMethod.Post, requestUrl);
-        geminiRequest.Content = JsonContent.Create(payload);
+        var failedAttempts = new List<string>();
 
-        using var response = await client.SendAsync(geminiRequest, cancellationToken);
-        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-
-        if (response.IsSuccessStatusCode)
+        foreach (var model in GetCandidateModels())
         {
-            return WasteAnalysisParser.Parse(responseBody);
+            var requestUrl = CreateGeminiRequestUrl(model, apiKey);
+            using var geminiRequest = new HttpRequestMessage(HttpMethod.Post, requestUrl);
+            geminiRequest.Content = JsonContent.Create(payload);
+
+            using var response = await client.SendAsync(geminiRequest, cancellationToken);
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return WasteAnalysisParser.Parse(responseBody);
+            }
+
+            var errorMessage = GeminiErrorParser.Parse(responseBody);
+            failedAttempts.Add($"{model}: {errorMessage}");
+
+            if (!IsRetryableProviderFailure(response.StatusCode, errorMessage))
+            {
+                throw new WasteAnalysisProviderException($"Modelo {model}: {errorMessage}");
+            }
         }
 
         throw new WasteAnalysisProviderException(
-            $"Modelo {model}: {GeminiErrorParser.Parse(responseBody)}");
+            $"No hubo modelos disponibles. Intentos: {string.Join(" | ", failedAttempts)}");
+    }
+
+    private IReadOnlyList<string> GetCandidateModels()
+    {
+        var models = new List<string>();
+        models.AddRange(ReadConfiguredModelList("Gemini:Models", "GEMINI_MODELS"));
+
+        var configuredModel = GetSecret("Gemini:Model", "GEMINI_MODEL");
+
+        if (!string.IsNullOrWhiteSpace(configuredModel))
+        {
+            models.Add(configuredModel);
+        }
+
+        models.AddRange(new[]
+        {
+            "gemini-3.5-flash-lite",
+            "gemini-3.1-flash-lite",
+            "gemini-3.7-flash",
+            "gemini-3.6-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-2.5-flash",
+            "gemini-flash-latest",
+        });
+
+        return models
+            .Select(model => model.Trim())
+            .Where(model => !string.IsNullOrWhiteSpace(model))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    private string[] ReadConfiguredModelList(string configurationKey, params string[] environmentKeys)
+    {
+        var configuredValue = GetSecret(configurationKey, environmentKeys);
+
+        if (string.IsNullOrWhiteSpace(configuredValue))
+        {
+            return Array.Empty<string>();
+        }
+
+        return configuredValue.Split(
+            new[] { ',', ';', '|' },
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    }
+
+    private static string CreateGeminiRequestUrl(string model, string apiKey) =>
+        $"https://generativelanguage.googleapis.com/v1beta/models/{Uri.EscapeDataString(model)}:generateContent?key={Uri.EscapeDataString(apiKey)}";
+
+    private static bool IsRetryableProviderFailure(System.Net.HttpStatusCode statusCode, string errorMessage)
+    {
+        if ((int)statusCode is 408 or 429 or 500 or 502 or 503 or 504)
+        {
+            return true;
+        }
+
+        return errorMessage.Contains("high demand", StringComparison.OrdinalIgnoreCase) ||
+            errorMessage.Contains("try again", StringComparison.OrdinalIgnoreCase) ||
+            errorMessage.Contains("temporarily", StringComparison.OrdinalIgnoreCase) ||
+            errorMessage.Contains("unavailable", StringComparison.OrdinalIgnoreCase);
     }
 
     private object CreateGeminiPayload(GeminiImageInput imageInput) =>
@@ -100,7 +168,7 @@ public sealed class WasteAnalysisService : IWasteAnalysisService
                             - Pilas, baterias, celulares, cables, electronicos, medicamentos, aerosoles peligrosos o quimicos no van al verde; van a punto especial/RAEE/pilas.
                             - Organicos van a compost u organico si existe.
                             - Si no puedes verlo bien, usa badge="Incierto", confidence="baja" y pide otra foto con mejor luz.
-                            - Escribe en espanol simple y corto para una app movil.
+                            - Escribe en espanol simple y corto para una app movil pero amable y lindo.
                             """,
                         },
                         new

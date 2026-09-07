@@ -4,19 +4,68 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>EcoQuest - Inicio</title>
-  <link rel="stylesheet" href="../css/escanear.css?v=5">
+  <link rel="stylesheet" href="../css/escanear.css?v=26">
 </head>
 <body>
-  <main class="app-shell">
-    <header class="brand-bar">
-      <img src="../img/logoia-crop.png" alt="EcoQuest" class="brand-logo">
-    </header>
+  <main class="app-shell home-shell home-shell-exported">
+    <section class="home-scene" aria-label="Camino de misiones EcoQuest">
+      <img class="home-full-layer home-base-layer" src="../img/pantallainicio-base.png" alt="">
 
-    <section class="scan-panel" aria-label="Inicio">
-      <article class="page-panel">
-        <h1>Inicio</h1>
-        <p>Bienvenido a EcoQuest. Usa el escaner de IA para analizar residuos y aprender donde depositarlos.</p>
-      </article>
+      <div class="home-capybara home-capybara-bag" data-capybara-animation="bolsa" data-capybara-speed="1320" aria-hidden="true">
+        <div class="home-capybara-body">
+          <img class="home-capybara-frame home-capybara-frame-current" src="../img/carpinchos/bolsa-1.png" alt="">
+        </div>
+      </div>
+      <div class="home-capybara home-capybara-kayak" data-capybara-animation="kayak" data-capybara-speed="780" aria-hidden="true">
+        <div class="home-capybara-body">
+          <img class="home-capybara-frame home-capybara-frame-current" src="../img/carpinchos/kayak-1.png?v=kayak-clean-1" alt="">
+        </div>
+      </div>
+      <div class="home-capybara home-capybara-idle" data-capybara-animation="idle" data-capybara-speed="1500" aria-hidden="true">
+        <div class="home-capybara-body">
+          <img class="home-capybara-frame home-capybara-frame-current" src="../img/carpinchos/idle-1.png" alt="">
+        </div>
+      </div>
+
+      <img class="home-full-layer home-ui-layer" src="../img/Nombre de usuario (13).png" alt="EcoQuest">
+      <img class="home-full-layer home-ui-layer" src="../img/racha.png" alt="">
+      <img class="home-full-layer home-ui-layer" src="../img/diamante.png" alt="">
+
+      <a class="home-level-link home-level-link-planet level-link-1" href="escanear.html" aria-label="Nivel 1 escanear residuo">
+        <img class="home-level-node" src="../img/nodos/planeta-nodo.png" alt="">
+        <span class="home-check" aria-hidden="true">✓</span>
+        <strong>1</strong>
+      </a>
+      <a class="home-level-link home-level-link-bag level-link-2" href="misiones.html" aria-label="Nivel 2 misiones">
+        <img class="home-level-node" src="../img/nodos/bolsa-nodo.png" alt="">
+        <span class="home-check" aria-hidden="true">✓</span>
+        <strong>2</strong>
+      </a>
+      <a class="home-level-link home-level-link-planet level-link-3" href="escanear.html" aria-label="Nivel 3 escanear con IA">
+        <img class="home-level-node" src="../img/nodos/planeta-nodo.png" alt="">
+        <span class="home-check" aria-hidden="true">✓</span>
+        <strong>3</strong>
+      </a>
+      <a class="home-level-link home-level-link-bag level-link-4" href="mapa.html" aria-label="Nivel 4 buscar contenedor">
+        <img class="home-level-node" src="../img/nodos/bolsa-nodo.png" alt="">
+        <span class="home-check" aria-hidden="true">✓</span>
+        <strong>4</strong>
+      </a>
+      <a class="home-level-link home-level-link-planet level-link-5" href="ranking.html" aria-label="Nivel 5 ranking">
+        <img class="home-level-node" src="../img/nodos/planeta-nodo.png" alt="">
+        <span class="home-check" aria-hidden="true">✓</span>
+        <strong>5</strong>
+      </a>
+      <a class="home-level-link home-level-link-bag level-link-6" href="misiones.html" aria-label="Nivel 6 desafio verde">
+        <img class="home-level-node" src="../img/nodos/bolsa-nodo.png" alt="">
+        <span class="home-check" aria-hidden="true">✓</span>
+        <strong>6</strong>
+      </a>
+      <a class="home-level-link home-level-link-planet level-link-7" href="mascota.html" aria-label="Nivel 7 mascota">
+        <img class="home-level-node" src="../img/nodos/planeta-nodo.png" alt="">
+        <span class="home-check" aria-hidden="true">✓</span>
+        <strong>7</strong>
+      </a>
     </section>
 
     <nav class="bottom-nav" aria-label="Navegacion principal">
@@ -42,9 +91,10 @@
       </a>
       <a class="nav-item" href="config.html">
         <img src="../img/ajustes-crop.png" alt="" aria-hidden="true">
-        <span>Config</span>
+        <span>config</span>
       </a>
     </nav>
   </main>
+  <script src="../js/inicio.js?v=4"></script>
 </body>
 </html>

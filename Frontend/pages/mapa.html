@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-  <link rel="stylesheet" href="../css/escanear.css?v=13">
+  <link rel="stylesheet" href="../css/escanear.css?v=15">
 </head>
 <body>
   <main class="app-shell">
@@ -36,7 +36,7 @@
           <span aria-hidden="true"></span>
           Mi ubicacion
         </div>
-        <button id="expandMapButton" class="expand-map-button" type="button">Ampliar mapa</button>
+        <button id="expandMapButton" class="expand-map-button" type="button">Expandir mapa</button>
       </div>
 
       <article class="map-info-card" aria-live="polite">
@@ -46,6 +46,9 @@
         <div class="map-card-copy">
           <h1 id="selectedPointName">Contenedores oficiales</h1>
           <p id="selectedPointAddress">Ciudad de Buenos Aires</p>
+          <div class="map-distance-summary">
+            <span id="selectedPointDistance">Distancia pendiente</span>
+          </div>
           <p id="locationStatus">Toca el boton de ubicacion para encontrar el contenedor cercano.</p>
           <div id="pendingPreview" class="pending-preview"></div>
           <div class="map-actions">
@@ -55,14 +58,6 @@
         </div>
       </article>
     </section>
-
-    <div id="mapOverlay" class="map-overlay" role="dialog" aria-modal="true" aria-label="Mapa ampliado" hidden>
-      <div class="map-overlay-header">
-        <strong>Mapa de reciclado</strong>
-        <button id="closeMapButton" class="close-map-button" type="button">Cerrar</button>
-      </div>
-      <div id="expandedEcoMap" class="expanded-eco-map" aria-label="Mapa ampliado con contenedores oficiales"></div>
-    </div>
 
     <nav class="bottom-nav" aria-label="Navegacion principal">
       <a class="nav-item" href="inicio.html">
@@ -94,6 +89,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="../js/ecoquest-state.js?v=2"></script>
-  <script src="../js/mapa.js?v=4"></script>
+  <script src="../js/mapa.js?v=6"></script>
 </body>
 </html>
