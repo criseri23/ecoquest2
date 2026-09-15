@@ -1,8 +1,20 @@
+using EcoQuest.Logica.Services;
+using EcoQuestAPI.Services;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using EcoQuest.Logica;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSingleton(RewardRules.Load(Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "..", "Frontend", "data", "rewards.json"))));
+builder.Services.AddSingleton<RankingStore>();
+builder.Services.AddRateLimiter(options => {
+    options.RejectionStatusCode=429;
+    options.AddPolicy("accounts", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "local",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit=20,Window=TimeSpan.FromMinutes(1),QueueLimit=0 }));
+});
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
@@ -28,6 +40,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+app.UseRateLimiter();
 
 var frontendPath = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "..", "Frontend"));
 

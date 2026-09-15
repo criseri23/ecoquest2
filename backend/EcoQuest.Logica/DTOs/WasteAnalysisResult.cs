@@ -9,4 +9,4 @@ public sealed record WasteAnalysisResult(
     bool IsWaste,
     bool CanUseGreenContainer,
     string WasteType,
-    string Confidence);
+    string Confidence, string? ScanId = null);

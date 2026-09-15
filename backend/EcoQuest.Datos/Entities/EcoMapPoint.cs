@@ -61,8 +61,16 @@ public sealed class SpecialGreenPoint : GreenPoint
         double lat,
         double lng,
         string specialty)
-        : base(id, name, address, lat, lng, new[] { "Contenedor verde", specialty })
+        : this(id, name, address, lat, lng, specialty, new[] { "Contenedor verde", specialty })
     {
+    }
+
+    public SpecialGreenPoint(
+        string id, string name, string address, double lat, double lng,
+        string specialty, IEnumerable<string> acceptedContainers)
+        : base(id, name, address, lat, lng, acceptedContainers)
+    {
+        // Guardamos los materiales que indica el catálogo.
         Specialty = specialty;
     }
 

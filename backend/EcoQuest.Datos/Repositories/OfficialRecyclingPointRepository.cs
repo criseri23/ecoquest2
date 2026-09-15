@@ -129,7 +129,7 @@ public sealed class OfficialRecyclingPointRepository : IRecyclingPointRepository
 
         if (layer.Category == "puntos_verdes")
         {
-            return new SpecialGreenPoint(id, name, address, lat, lng, "Punto especial");
+            return new SpecialGreenPoint(id, name, address, lat, lng, "Punto especial", layer.AcceptedContainers);
         }
 
         return new StreetContainerPoint(
