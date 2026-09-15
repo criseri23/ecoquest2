@@ -1,10 +1,8 @@
+window.EcoQuestReady.then(() => {
 const OFFICIAL_BASE_LAYER_URL =
   "https://geoserver.buenosaires.gob.ar/geoserver/gwc/service/tms/1.0.0/catalogo_mapa_base%3Amapa_base_v2@EPSG%3A900913@png/{z}/{x}/{y}.png";
 
 const MAP_CENTER = [-34.6037, -58.3816];
-const GREEN_CONTAINER_ICON = "https://epok.buenosaires.gob.ar/media/repok/uploads/mapainteractivoba/contenedor_verde_xs.png";
-const BLACK_CONTAINER_ICON = "https://epok.buenosaires.gob.ar/media/repok/uploads/mapainteractivoba/contenedor_negro_chico.png";
-const GREEN_POINT_ICON = "https://epok.buenosaires.gob.ar/media/repok/uploads/mapainteractivoba/puntos_verdes.png";
 
 const DEFAULT_RECYCLING_POINTS = [
   {
@@ -100,15 +98,10 @@ class SpecialGreenPoint extends RecyclingPoint {
   }
 
   accepts(container) {
-    const requestedContainer = this.normalize(container);
-
-    return super.accepts(container) ||
-      requestedContainer.includes("especial") ||
-      requestedContainer.includes("pilas") ||
-      requestedContainer.includes("bateria") ||
-      requestedContainer.includes("raee") ||
-      requestedContainer.includes("electronico");
+    // Cada punto acepta solamente los materiales de su ficha.
+    return super.accepts(container) || this.normalize(container) === this.normalize(this.specialty);
   }
+
 }
 
 class StreetContainerPoint extends RecyclingPoint {
@@ -176,28 +169,7 @@ class ContainerVerifier extends DistanceService {
       return this.points;
     }
 
-    const containers = pendingScans.map((scan) => this.normalize(scan.container));
-    const needsBlackContainer = containers.some((container) =>
-      container.includes("basura") || container.includes("comun"));
-    const needsSpecialPoint = containers.some((container) =>
-      container.includes("especial") ||
-      container.includes("pila") ||
-      container.includes("bateria") ||
-      container.includes("raee") ||
-      container.includes("electronico"));
-
-    if (needsBlackContainer) {
-      return this.points.filter((point) => point.isBlackStreetContainer || point.accepts("Basura comun"));
-    }
-
-    if (needsSpecialPoint) {
-      return this.points.filter((point) => point instanceof SpecialGreenPoint || point.accepts("Punto especial"));
-    }
-
-    const greenContainers = this.points.filter((point) => point.isGreenStreetContainer);
-    return greenContainers.length > 0
-      ? greenContainers
-      : this.points.filter((point) => point.accepts("Contenedor verde"));
+    return this.points.filter(point => pendingScans.some(scan => point.accepts(scan.container)));
   }
 
   isInsideVerificationZone(distance) {
@@ -224,12 +196,23 @@ class EcoQuestMapController {
     this.mainMap = null;
     this.pointsLoaded = false;
     this.isMapExpanded = false;
+    this.isLocating = false;
+    this.findNearestAfterLocation = false;
+    this.usingFallback = false;
     this.elements = {
       appShell: document.querySelector(".app-shell"),
       mapPanel: document.querySelector(".map-panel"),
       scoreTotal: document.querySelector("#scoreTotal"),
       pendingCount: document.querySelector("#pendingCount"),
       locateButton: document.querySelector("#locateButton"),
+      locateLabel: document.querySelector("#locateLabel"),
+      nearestButton: document.querySelector("#nearestButton"),
+      selectedPointType: document.querySelector("#selectedPointType"),
+      pointExplanation: document.querySelector("#pointExplanation"),
+      specialPointInfo: document.querySelector("#specialPointInfo"),
+      mapDirections: document.querySelector("#mapDirections"),
+      googleMapsLink: document.querySelector("#googleMapsLink"),
+      travelMode: document.querySelector("#travelMode"),
       verifyButton: document.querySelector("#verifyButton"),
       selectedPointName: document.querySelector("#selectedPointName"),
       selectedPointAddress: document.querySelector("#selectedPointAddress"),
@@ -251,7 +234,9 @@ class EcoQuestMapController {
     this.pointsLoaded = true;
     this.verifier = new ContainerVerifier(this.points);
     this.addMarkersToMap(this.mainMap);
-    this.selectedPoint = this.points[0];
+    let savedPoint;
+    try { savedPoint = sessionStorage.getItem("ecoquestSelectedPoint"); } catch { }
+    this.selectedPoint = this.points.find(point => point.id === savedPoint) || null;
     this.renderSelectedPoint();
 
     if (this.currentPosition) {
@@ -259,11 +244,14 @@ class EcoQuestMapController {
       return;
     }
 
-    this.setStatus("Toca el boton de ubicacion para encontrar el contenedor cercano.");
+    if (this.selectedPoint) this.focusMapsOnLocation(this.selectedPoint);
+    this.setStatus("Tocá un marcador o usá Buscar cercano para elegir dónde llevar tus residuos.");
   }
 
   bindEvents() {
-    this.elements.locateButton.addEventListener("click", () => this.requestLocation());
+    this.elements.locateButton.addEventListener("click", () => this.requestLocation(false));
+    this.elements.nearestButton.addEventListener("click", () => this.requestLocation(true));
+    this.elements.travelMode.addEventListener("change", () => this.updateDirections());
     this.elements.verifyButton.addEventListener("click", () => this.verifyRecycling());
     this.elements.expandMapButton.addEventListener("click", () => this.toggleExpandedMap());
 
@@ -307,6 +295,8 @@ class EcoQuestMapController {
       map,
       markerLayer,
       userMarker: null,
+      accuracyCircle: null,
+      selectedMarker: null,
     };
   }
 
@@ -339,6 +329,8 @@ class EcoQuestMapController {
           this.selectedPoint = point;
           this.selectedDistance = this.calculateSelectedDistance(point);
           this.renderSelectedPoint();
+          this.focusMapsOnLocation(point);
+          this.setStatus("Destino seleccionado. Podés ver cómo llegar o elegir otro marcador.");
         }));
 
     if (typeof mapState.markerLayer.addLayers === "function") {
@@ -350,17 +342,13 @@ class EcoQuestMapController {
   }
 
   getMarkerIcon(point) {
-    const iconUrl = point.isBlackStreetContainer
-      ? BLACK_CONTAINER_ICON
-      : point instanceof SpecialGreenPoint
-        ? GREEN_POINT_ICON
-        : GREEN_CONTAINER_ICON;
-
-    return L.icon({
-      iconUrl,
-      iconSize: [24, 24],
-      iconAnchor: [12, 22],
-      popupAnchor: [0, -18],
+    const special = point instanceof SpecialGreenPoint;
+    const color = point.isBlackStreetContainer ? "black" : special ? "special" : "green";
+    return L.divIcon({
+      className: `eco-point-marker eco-point-${color}`,
+      html: `<span>${special ? "★" : point.isBlackStreetContainer ? "●" : "♻"}</span>`,
+      iconSize: special ? [34, 34] : [28, 28],
+      iconAnchor: special ? [17, 17] : [14, 14],
     });
   }
 
@@ -368,6 +356,7 @@ class EcoQuestMapController {
     return `
       <div class="eco-marker-popup">
         ${this.escapeHtml(point.name)}
+        <small>${this.escapeHtml(this.describeTarget(point))}</small>
         <small>${this.escapeHtml(point.address)}</small>
       </div>
     `;
@@ -375,15 +364,17 @@ class EcoQuestMapController {
 
   async loadPoints() {
     try {
-      const response = await fetch(this.getApiUrl("/api/contenedores"));
+      const response = await fetch(this.getApiUrl("/api/contenedores"), { signal: AbortSignal.timeout(80000) });
 
       if (!response.ok) {
         throw new Error("No se pudieron cargar los contenedores.");
       }
 
       const points = await response.json();
-      return points.map((point) => this.createPoint(point));
+      if (!Array.isArray(points) || !points.length) throw new Error("Sin puntos");
+      return points.filter(point => Number.isFinite(Number(point.lat)) && Number.isFinite(Number(point.lng))).map((point) => this.createPoint(point));
     } catch {
+      this.usingFallback = true;
       return DEFAULT_RECYCLING_POINTS.map((point) => this.createPoint(point));
     }
   }
@@ -403,6 +394,7 @@ class EcoQuestMapController {
   }
 
   getApiUrl(path) {
+    if (window.EcoQuestAccount) return window.EcoQuestAccount.apiOrigin + path;
     if (!window.location.protocol.startsWith("http")) {
       return `http://localhost:5228${path}`;
     }
@@ -416,12 +408,25 @@ class EcoQuestMapController {
 
   renderSelectedPoint() {
     if (!this.selectedPoint) {
-      this.elements.selectedPointName.textContent = "Contenedores oficiales";
+      this.elements.mapDirections.hidden = true;
+      this.elements.specialPointInfo.hidden = true;
+      this.elements.selectedPointType.textContent = "Elegí un punto";
+      this.elements.pointExplanation.textContent = "Verde: reciclables. Negro: basura común. Violeta: Punto Verde para entregas con atención.";
+      this.elements.selectedPointName.textContent = "¿Dónde querés reciclar?";
       this.elements.selectedPointAddress.textContent = "Ciudad de Buenos Aires";
       this.elements.selectedPointDistance.textContent = "Distancia pendiente";
       return;
     }
 
+    const special = this.selectedPoint instanceof SpecialGreenPoint;
+    this.elements.selectedPointType.textContent = this.describeTarget(this.selectedPoint);
+    this.elements.selectedPointType.classList.toggle("is-special", special);
+    this.elements.specialPointInfo.hidden = !special;
+    this.elements.pointExplanation.textContent = special
+      ? "Es un lugar de entrega, no un contenedor común. Para residuos como pilas o electrónicos, consultá qué recibe y su horario de atención antes de ir."
+      : this.selectedPoint.isBlackStreetContainer ? "Para basura común. Separá los reciclables antes de depositarlos." : "Para materiales reciclables, limpios y secos.";
+    try { sessionStorage.setItem("ecoquestSelectedPoint", this.selectedPoint.id); } catch { }
+    this.updateDirections();
     this.elements.selectedPointName.textContent = this.selectedPoint.name;
     this.elements.selectedPointAddress.textContent = this.selectedPoint.address;
     this.elements.selectedPointDistance.textContent = this.formatSelectedDistance();
@@ -452,7 +457,20 @@ class EcoQuestMapController {
       .join("");
   }
 
-  requestLocation() {
+  updateDirections() {
+    if (!this.selectedPoint) return;
+    const url = new URL("https://www.google.com/maps/dir/");
+    url.searchParams.set("api", "1");
+    url.searchParams.set("destination", `${this.selectedPoint.lat},${this.selectedPoint.lng}`);
+    url.searchParams.set("travelmode", this.elements.travelMode.value);
+    if (this.currentPosition) url.searchParams.set("origin", `${this.currentPosition.lat},${this.currentPosition.lng}`);
+    this.elements.googleMapsLink.href = url.toString();
+    this.elements.mapDirections.hidden = false;
+  }
+
+  requestLocation(findNearest = false) {
+    if (this.isLocating) return;
+    this.findNearestAfterLocation = findNearest;
     if (!navigator.geolocation) {
       this.setStatus("Este navegador no permite verificar ubicacion.");
       return;
@@ -463,7 +481,11 @@ class EcoQuestMapController {
       return;
     }
 
-    this.setStatus("Buscando tu ubicacion real...");
+    this.isLocating = true;
+    this.elements.locateButton.disabled = true;
+    this.elements.nearestButton.disabled = true;
+    this.elements.locateLabel.textContent = "Buscando…";
+    this.setStatus("Buscando tu ubicación. Si el navegador lo pide, permití el acceso.");
 
     navigator.geolocation.getCurrentPosition(
       (position) => this.handleLocationSuccess(position),
@@ -477,6 +499,8 @@ class EcoQuestMapController {
   }
 
   handleLocationSuccess(position) {
+    this.finishLocating();
+    this.locationUpdatedAt = Date.now();
     this.currentPosition = {
       lat: position.coords.latitude,
       lng: position.coords.longitude,
@@ -496,6 +520,12 @@ class EcoQuestMapController {
   }
 
   handleLocationError(error) {
+    this.finishLocating();
+    this.currentPosition = null;
+    if (this.mainMap?.userMarker) { this.mainMap.map.removeLayer(this.mainMap.userMarker); this.mainMap.userMarker = null; }
+    if (this.mainMap?.accuracyCircle) { this.mainMap.map.removeLayer(this.mainMap.accuracyCircle); this.mainMap.accuracyCircle = null; }
+    this.selectedDistance = null;
+    this.renderSelectedPoint();
     this.elements.locateButton.classList.remove("is-active");
     this.elements.userLocationBadge.hidden = true;
 
@@ -507,6 +537,13 @@ class EcoQuestMapController {
     this.setStatus("No pude encontrar tu ubicacion. Proba otra vez.");
   }
 
+  finishLocating() {
+    this.isLocating = false;
+    this.elements.locateButton.disabled = false;
+    this.elements.nearestButton.disabled = false;
+    this.elements.locateLabel.textContent = "Mi ubicación";
+  }
+
   updateUserMarkers() {
     [this.mainMap].forEach((mapState) => {
       if (!mapState || !this.currentPosition) {
@@ -515,6 +552,8 @@ class EcoQuestMapController {
 
       const latLng = [this.currentPosition.lat, this.currentPosition.lng];
 
+      if (mapState.accuracyCircle) mapState.map.removeLayer(mapState.accuracyCircle);
+      mapState.accuracyCircle = L.circle(latLng, { radius: this.currentPosition.accuracy, color: "#218bd0", weight: 1, fillOpacity: .08, interactive: false }).addTo(mapState.map);
       if (mapState.userMarker) {
         mapState.userMarker.setLatLng(latLng);
         return;
@@ -534,7 +573,9 @@ class EcoQuestMapController {
 
   renderLocationResult() {
     const pendingScans = this.store.readPendingScans();
-    const nearest = this.verifier.findNearest(this.currentPosition, pendingScans);
+    const nearest = this.selectedPoint && !this.findNearestAfterLocation
+      ? { point: this.selectedPoint, distance: this.calculateSelectedDistance(this.selectedPoint) }
+      : this.verifier.findNearest(this.currentPosition, pendingScans);
 
     if (!nearest) {
       this.setStatus("No encontre contenedores cercanos para ese residuo.");
@@ -552,6 +593,14 @@ class EcoQuestMapController {
       ? ` Precision aprox: ${this.verifier.formatMeters(this.currentPosition.accuracy)}.`
       : "";
 
+    if (nearest.distance > 20000) {
+      this.setStatus("El punto de CABA está lejos de tu ubicación. Mostramos el destino; abrí Google Maps para consultar el recorrido.");
+      return;
+    }
+    if (this.currentPosition.accuracy > 150) {
+      this.setStatus("Tu ubicación es poco precisa. El círculo azul muestra el margen de error. Probá nuevamente antes de validar.");
+      return;
+    }
     if (this.verifier.isInsideVerificationZone(nearest.distance)) {
       this.setStatus(`Estas cerca del ${targetText}: ${distanceText}. Ya podes verificar.${accuracyText}`);
       return;
@@ -561,31 +610,29 @@ class EcoQuestMapController {
   }
 
   focusMapsOnLocation(point) {
-    [this.mainMap].forEach((mapState) => {
-      if (!mapState || !this.currentPosition || !point) {
-        return;
-      }
-
-      const userLatLng = [this.currentPosition.lat, this.currentPosition.lng];
-      const pointLatLng = point.position;
-      const bounds = L.latLngBounds([userLatLng, pointLatLng]);
-
-      if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
-        mapState.map.setView(userLatLng, 17);
-        return;
-      }
-
-      mapState.map.fitBounds(bounds.pad(0.25), {
-        maxZoom: 16,
-      });
-    });
+    if (!this.mainMap || !point) return;
+    const state = this.mainMap;
+    state.map.invalidateSize();
+    if (state.selectedMarker) state.map.removeLayer(state.selectedMarker);
+    // El destino elegido queda visible aunque los otros marcadores estén agrupados.
+    state.selectedMarker = L.marker(point.position, { icon: this.getMarkerIcon(point), zIndexOffset: 1000 })
+      .bindPopup(this.createPopup(point)).addTo(state.map);
+    if (this.currentPosition && this.calculateSelectedDistance(point) < 20000) {
+      state.map.fitBounds(L.latLngBounds([[this.currentPosition.lat, this.currentPosition.lng], point.position]), { padding: [45, 45], maxZoom: 17, animate: false });
+    } else {
+      state.map.setView(point.position, 16, { animate: false });
+    }
+    state.selectedMarker.getElement()?.classList.add("is-selected");
   }
 
-  verifyRecycling() {
+  async verifyRecycling() {
+    if (this.verifying) return;
     if (!this.currentPosition) {
       this.requestLocation();
       return;
     }
+
+    if (Date.now() - this.locationUpdatedAt > 60000) { this.requestLocation(false); return; }
 
     if (!this.pointsLoaded) {
       this.setStatus("Todavia estoy cargando los contenedores oficiales.");
@@ -599,7 +646,10 @@ class EcoQuestMapController {
       return;
     }
 
-    const nearest = this.verifier.findNearest(this.currentPosition, pendingScans);
+    if (!this.selectedPoint) { this.setStatus("Elegí un destino o tocá Buscar cercano primero."); return; }
+    if (this.usingFallback) { this.setStatus("No se pudo cargar el catálogo oficial. Reintentá antes de validar."); return; }
+    if (this.currentPosition.accuracy > 150) { this.setStatus("Tu ubicación es poco precisa. Tocá Mi ubicación para actualizarla."); return; }
+    const nearest = { point: this.selectedPoint, distance: this.calculateSelectedDistance(this.selectedPoint) };
 
     if (!nearest) {
       this.setStatus("No encontre un contenedor compatible para esos residuos.");
@@ -623,6 +673,19 @@ class EcoQuestMapController {
       return;
     }
 
+    if (window.EcoQuestAccount?.profile) {
+      const scanIds = awardableScans.map(scan => scan.serverScanId).filter(Boolean);
+      if (!scanIds.length) { this.setStatus("Escaneá los residuos con tu cuenta iniciada para sumar al ranking."); return; }
+      this.verifying = true; this.elements.verifyButton.disabled = true;
+      try {
+        const result = await window.EcoQuestAccount.request("/api/ranking/verify", { method: "POST", body: JSON.stringify({ scanIds, pointId: nearest.point.id, ...this.currentPosition }) });
+        window.EcoQuestAccount.applyProfile(result.profile);
+        this.store.writeJson(this.store.pendingKey, this.store.readPendingScans().filter(scan => !scanIds.includes(scan.serverScanId)));
+        this.renderProgress(); this.setStatus(`Reciclaje verificado: +${result.awardedPoints} XP. Ranking actualizado.`);
+      } catch (error) { this.setStatus(error.message); }
+      finally { this.verifying = false; this.elements.verifyButton.disabled = false; }
+      return;
+    }
     const result = this.store.awardPendingScans(awardableScans, nearest.point);
     this.renderProgress();
     this.setStatus(`Reciclaje verificado: +${result.awardedPoints} XP.`);
@@ -643,14 +706,14 @@ class EcoQuestMapController {
     this.elements.expandMapButton.textContent = "Reducir mapa";
 
     setTimeout(() => {
-      this.mainMap.map.invalidateSize();
+      this.mainMap?.map.invalidateSize();
 
       if (this.currentPosition && this.selectedPoint) {
         this.focusMapsOnLocation(this.selectedPoint);
       }
     }, 80);
 
-    this.elements.closeMapButton.focus();
+    this.elements.expandMapButton.focus();
   }
 
   closeExpandedMap() {
@@ -660,7 +723,7 @@ class EcoQuestMapController {
 
     setTimeout(() => {
       if (this.mainMap) {
-        this.mainMap.map.invalidateSize();
+        this.mainMap?.map.invalidateSize();
       }
     }, 80);
 
@@ -684,7 +747,7 @@ class EcoQuestMapController {
       return "Activa ubicacion para calcular distancia";
     }
 
-    return `Estas a ${this.verifier.formatMeters(this.selectedDistance)}`;
+    return `${this.verifier.formatMeters(this.selectedDistance)} en línea recta`;
   }
 
   createExpandedStatus() {
@@ -705,7 +768,7 @@ class EcoQuestMapController {
     }
 
     if (point instanceof SpecialGreenPoint) {
-      return "punto especial";
+      return "Punto Verde · atención especial";
     }
 
     return "contenedor verde";
@@ -716,7 +779,7 @@ class EcoQuestMapController {
   }
 
   setStatus(message) {
-    this.elements.locationStatus.textContent = message;
+    this.elements.locationStatus.textContent = (this.usingFallback ? "Catálogo sin conexión; puntos de referencia. " : "") + message;
   }
 
   escapeHtml(value) {
@@ -730,3 +793,5 @@ class EcoQuestMapController {
 }
 
 new EcoQuestMapController().start();
+
+});

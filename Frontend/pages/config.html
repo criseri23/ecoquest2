@@ -5,12 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>EcoQuest - Config</title>
   <link rel="stylesheet" href="../css/escanear.css?v=5">
+<link rel="stylesheet" href="../css/ecoquest-layout.css?v=1">
 </head>
 <body>
   <main class="app-shell">
-    <header class="brand-bar">
-      <img src="../img/logoia-crop.png" alt="EcoQuest" class="brand-logo">
+    <header class="eco-header" aria-label="Tu progreso en EcoQuest">
+      <a class="eco-brand" href="inicio.html" aria-label="EcoQuest, inicio"><img src="../img/logoia-crop.png" alt="EcoQuest"></a>
+      <div class="eco-stats">
+        <span class="eco-stat" aria-label="Experiencia">🍃 <b data-total-xp>0</b> XP</span>
+        <span class="eco-stat">⭐ Nivel <b data-level>1</b></span>
+        <a class="eco-stat" href="calendario.html" title="Ver calendario y racha">🔥 Racha <b data-streak>0</b></a>
+      </div>
     </header>
+    
 
     <section class="scan-panel" aria-label="Configuracion">
       <article class="page-panel">
@@ -46,5 +53,9 @@
       </a>
     </nav>
   </main>
+<script src="../js/ecoquest-account.js?v=2"></script>
+<script src="../js/ecoquest-rules.js?v=1"></script>
+<script src="../js/ecoquest-state.js?v=6"></script>
+<script src="../js/ecoquest-activity.js?v=1"></script>
 </body>
 </html>

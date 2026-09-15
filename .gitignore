@@ -5,3 +5,10 @@ obj/
 *.suo
 node_modules/
 .env
+
+# Local account data
+*.db
+*.db-shm
+*.db-wal
+
+.local-build/

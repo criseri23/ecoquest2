@@ -1,0 +1,148 @@
+/* El encabezado y la navegación usan el mismo estilo en todas las pantallas. */
+:root { --safe-bottom: env(safe-area-inset-bottom, 0px); --nav-height: 82px; }
+.app-shell, .calendar-app { container-type: inline-size; }
+.eco-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 2%;
+  width: 100%;
+  padding: 2% 3%;
+  background: #073e22ef;
+  color: #fff9d7;
+  font-family: Arial, sans-serif;
+}
+.eco-brand { display: block; width: 32%; flex-shrink: 0; }
+.eco-brand img { display: block; width: 100%; height: auto; }
+.eco-stats { display: flex; flex: 1; justify-content: flex-end; gap: 2%; min-width: 0; }
+.eco-stat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5cqw;
+  white-space: nowrap;
+  border: 2px solid #486622;
+  border-radius: 1.7cqw;
+  padding: 2.5% 1.5%;
+  font-size: clamp(9px, 2.2cqw, 25px);
+  line-height: 1.3;
+  color: #fff9d7;
+  text-decoration: none;
+}
+.eco-stat b { color: #ffe155; }
+.eco-stat:focus-visible { outline: 2px solid #ffe155; outline-offset: 2px; }
+.home-map-scroll { position: relative; inset: auto; flex: 1; min-height: 0; margin-bottom: calc(var(--nav-height) + var(--safe-bottom)); }
+.bottom-nav {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  min-height: calc(var(--nav-height) + var(--safe-bottom));
+  padding: 9px 6px calc(8px + var(--safe-bottom));
+  gap: 4px;
+  background: #4b7e17;
+  box-shadow: 0 -4px 10px rgba(18, 62, 15, 0.28);
+}
+
+.nav-item {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 66px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0 1px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: clamp(10px, 3vw, 13px);
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  text-shadow: 0 1px 1px rgba(13, 55, 12, 0.35);
+}
+
+.nav-item::before {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: clamp(36px, 9.5vw, 46px);
+  height: clamp(36px, 9.5vw, 46px);
+  border-radius: 50%;
+  background: #8bc737;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.24),
+    0 2px 3px rgba(23, 75, 12, 0.28);
+  content: "";
+  transform: translateX(-50%);
+}
+
+.nav-item img {
+  position: relative;
+  z-index: 1;
+  width: clamp(28px, 7.5vw, 36px);
+  height: clamp(28px, 7.5vw, 36px);
+  margin-top: 7px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  object-fit: contain;
+}
+
+.nav-item.active::before {
+  background: #f3fbde;
+}
+
+.nav-item:first-child img {
+  width: clamp(35px, 9.5vw, 44px);
+  height: clamp(35px, 9.5vw, 44px);
+  margin-top: 4px;
+}
+
+.nav-item span {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  max-width: 100%;
+  margin-top: 5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.calendar-app { padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px); }
+.calendar-app .bottom-nav {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  width: min(100%, 1080px);
+  transform: translateX(-50%);
+  font-family: "Trebuchet MS", Arial, sans-serif;
+}
+/* El progreso queda tallado en el tablero, con una barra real encima. */
+.month-progress {
+  margin: 1% 1% 3%;
+  padding: 2.5% 3%;
+  border: 2px solid #754016;
+  border-radius: 12px;
+  background: #9b551e45;
+  box-shadow: inset 0 3px 5px #48240780, 0 1px 0 #f6c37d;
+  color: #fff0c7;
+  text-shadow: 0 1px 2px #573015;
+}
+.month-progress progress {
+  border-color: #63380f;
+  background: #63380f;
+  box-shadow: inset 0 2px 4px #2d1c0b99, 0 1px 0 #ecc077;
+}
+.month-progress progress::-webkit-progress-bar { background: #724515; box-shadow: inset 0 2px 4px #2d1c0b99; }
+.month-progress progress::-webkit-progress-value { background: linear-gradient(#b5df4b, #548e15); border-radius: 12px; }
+.month-progress progress::-moz-progress-bar { background: linear-gradient(#b5df4b, #548e15); }

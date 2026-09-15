@@ -4,11 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>EcoQuest - Inicio</title>
-  <link rel="stylesheet" href="../css/escanear.css?v=26">
+  <link rel="stylesheet" href="../css/escanear.css?v=29">
+<link rel="stylesheet" href="../css/ecoquest-layout.css?v=1">
 </head>
 <body>
   <main class="app-shell home-shell home-shell-exported">
-    <section class="home-scene" aria-label="Camino de misiones EcoQuest">
+    <header class="eco-header" aria-label="Tu progreso en EcoQuest">
+      <a class="eco-brand" href="inicio.html" aria-label="EcoQuest, inicio"><img src="../img/logoia-crop.png" alt="EcoQuest"></a>
+      <div class="eco-stats">
+        <span class="eco-stat" aria-label="Experiencia">🍃 <b data-total-xp>0</b> XP</span>
+        <span class="eco-stat">⭐ Nivel <b data-level>1</b></span>
+        <a class="eco-stat" href="calendario.html" title="Ver calendario y racha">🔥 Racha <b data-streak>0</b></a>
+      </div>
+    </header>
+    <div class="home-map-scroll" role="region" aria-label="Camino de los doce meses" tabindex="0">
+    
+    <section class="home-scene" aria-label="Enero a julio">
       <img class="home-full-layer home-base-layer" src="../img/pantallainicio-base.png" alt="">
 
       <div class="home-capybara home-capybara-bag" data-capybara-animation="bolsa" data-capybara-speed="1320" aria-hidden="true">
@@ -27,46 +38,79 @@
         </div>
       </div>
 
-      <img class="home-full-layer home-ui-layer" src="../img/Nombre de usuario (13).png" alt="EcoQuest">
-      <img class="home-full-layer home-ui-layer" src="../img/racha.png" alt="">
-      <img class="home-full-layer home-ui-layer" src="../img/diamante.png" alt="">
+      <a class="home-level-link home-level-link-planet level-link-1" href="calendario.html?month=1" aria-label="Enero, nivel 1 escanear residuo">
+        <img class="home-level-node" src="../img/nodos/planeta-nodo.png" alt="">
 
-      <a class="home-level-link home-level-link-planet level-link-1" href="escanear.html" aria-label="Nivel 1 escanear residuo">
-        <img class="home-level-node" src="../img/nodos/planeta-nodo.png" alt="">
-        <span class="home-check" aria-hidden="true">✓</span>
         <strong>1</strong>
+        <span class="home-month">Enero</span>
       </a>
-      <a class="home-level-link home-level-link-bag level-link-2" href="misiones.html" aria-label="Nivel 2 misiones">
+      <a class="home-level-link home-level-link-bag level-link-2" href="calendario.html?month=2" aria-label="Febrero, nivel 2 misiones">
         <img class="home-level-node" src="../img/nodos/bolsa-nodo.png" alt="">
-        <span class="home-check" aria-hidden="true">✓</span>
+
         <strong>2</strong>
+        <span class="home-month">Febrero</span>
       </a>
-      <a class="home-level-link home-level-link-planet level-link-3" href="escanear.html" aria-label="Nivel 3 escanear con IA">
+      <a class="home-level-link home-level-link-planet level-link-3" href="calendario.html?month=3" aria-label="Marzo, nivel 3 escanear con IA">
         <img class="home-level-node" src="../img/nodos/planeta-nodo.png" alt="">
-        <span class="home-check" aria-hidden="true">✓</span>
+
         <strong>3</strong>
+        <span class="home-month">Marzo</span>
       </a>
-      <a class="home-level-link home-level-link-bag level-link-4" href="mapa.html" aria-label="Nivel 4 buscar contenedor">
+      <a class="home-level-link home-level-link-bag level-link-4" href="calendario.html?month=4" aria-label="Abril, nivel 4 buscar contenedor">
         <img class="home-level-node" src="../img/nodos/bolsa-nodo.png" alt="">
-        <span class="home-check" aria-hidden="true">✓</span>
+
         <strong>4</strong>
+        <span class="home-month">Abril</span>
       </a>
-      <a class="home-level-link home-level-link-planet level-link-5" href="ranking.html" aria-label="Nivel 5 ranking">
+      <a class="home-level-link home-level-link-planet level-link-5" href="calendario.html?month=5" aria-label="Mayo, nivel 5 ranking">
         <img class="home-level-node" src="../img/nodos/planeta-nodo.png" alt="">
-        <span class="home-check" aria-hidden="true">✓</span>
+
         <strong>5</strong>
+        <span class="home-month">Mayo</span>
       </a>
-      <a class="home-level-link home-level-link-bag level-link-6" href="misiones.html" aria-label="Nivel 6 desafio verde">
+      <a class="home-level-link home-level-link-bag level-link-6" href="calendario.html?month=6" aria-label="Junio, nivel 6 desafio verde">
         <img class="home-level-node" src="../img/nodos/bolsa-nodo.png" alt="">
-        <span class="home-check" aria-hidden="true">✓</span>
+
         <strong>6</strong>
+        <span class="home-month">Junio</span>
       </a>
-      <a class="home-level-link home-level-link-planet level-link-7" href="mascota.html" aria-label="Nivel 7 mascota">
+      <a class="home-level-link home-level-link-planet level-link-7" href="calendario.html?month=7" aria-label="Julio, nivel 7 mascota">
         <img class="home-level-node" src="../img/nodos/planeta-nodo.png" alt="">
-        <span class="home-check" aria-hidden="true">✓</span>
+
         <strong>7</strong>
+        <span class="home-month">Julio</span>
       </a>
     </section>
+
+    <section class="home-scene home-scene-continuation" aria-label="Agosto a diciembre">
+      <img class="home-full-layer home-base-layer" src="../img/pantallainicio-continuacion.png" alt="" loading="lazy">
+      <a class="home-level-link home-level-link-bag level-link-8" href="calendario.html?month=8" aria-label="Agosto, mes 8: misiones">
+        <img class="home-level-node" src="../img/nodos/bolsa-nodo.png" alt="">
+        <strong>8</strong>
+        <span class="home-month">Agosto</span>
+      </a>
+      <a class="home-level-link home-level-link-planet level-link-9" href="calendario.html?month=9" aria-label="Septiembre, mes 9: misiones">
+        <img class="home-level-node" src="../img/nodos/planeta-nodo.png" alt="">
+        <strong>9</strong>
+        <span class="home-month">Septiembre</span>
+      </a>
+      <a class="home-level-link home-level-link-bag level-link-10" href="calendario.html?month=10" aria-label="Octubre, mes 10: misiones">
+        <img class="home-level-node" src="../img/nodos/bolsa-nodo.png" alt="">
+        <strong>10</strong>
+        <span class="home-month">Octubre</span>
+      </a>
+      <a class="home-level-link home-level-link-planet level-link-11" href="calendario.html?month=11" aria-label="Noviembre, mes 11: misiones">
+        <img class="home-level-node" src="../img/nodos/planeta-nodo.png" alt="">
+        <strong>11</strong>
+        <span class="home-month">Noviembre</span>
+      </a>
+      <a class="home-level-link home-level-link-bag level-link-12" href="calendario.html?month=12" aria-label="Diciembre, mes 12: misiones">
+        <img class="home-level-node" src="../img/nodos/bolsa-nodo.png" alt="">
+        <strong>12</strong>
+        <span class="home-month">Diciembre</span>
+      </a>
+    </section>
+    </div>
 
     <nav class="bottom-nav" aria-label="Navegacion principal">
       <a class="nav-item active" href="inicio.html">
@@ -96,5 +140,9 @@
     </nav>
   </main>
   <script src="../js/inicio.js?v=4"></script>
+<script src="../js/ecoquest-account.js?v=2"></script>
+<script src="../js/ecoquest-rules.js?v=1"></script>
+<script src="../js/ecoquest-state.js?v=6"></script>
+<script src="../js/ecoquest-activity.js?v=1"></script>
 </body>
 </html>

@@ -1,0 +1,124 @@
+*{box-sizing:border-box}
+body{margin:0;background:#073d22;color:#214119;font-family:Georgia,serif}
+.calendar-app{max-width:1080px;margin:auto;background:url('../img/fondocalendario.png') center/100% auto;padding-bottom:22px}
+.month-progress{display:flex;align-items:center;justify-content:space-between;gap:3%;background:linear-gradient(#fff9dc,#eedba9);border:3px solid #d9b568;border-radius:24px;padding:2.5% 4%;box-shadow:0 5px 4px #543413;font-family:Arial;font-size:clamp(11px,2.4vw,28px);text-align:center;margin-bottom:3%}
+.month-progress progress{width:53%;height:clamp(20px,4.6vw,50px);appearance:none;border:2px solid #a58f4d;border-radius:18px;overflow:hidden;background:#eddbad}
+progress::-webkit-progress-bar{background:#eddbad}
+progress::-webkit-progress-value{background:linear-gradient(#94c92d,#478d0d)}
+progress::-moz-progress-bar{background:#6aab19}
+.weekdays,.calendar-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1.3%}
+.weekdays{padding:2% 0;font:bold clamp(12px,2.8vw,31px) Arial;color:#34220e;border-bottom:3px solid #654015;text-align:center}
+.calendar-days{gap:8px 1%;padding-top:1.5%}
+.calendar-day{aspect-ratio:.95;position:relative;border:0;background:transparent;padding:0;cursor:pointer;color:white}
+.tile-art{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.day-number{position:absolute;top:11%;left:14%;font:bold clamp(12px,2.4vw,27px) Arial;text-shadow:1px 2px #395b1a}
+.day-icon{position:absolute;top:28%;left:22%;width:60%;height:57%}
+.day-check{position:absolute;right:0;top:0;background:#609715;border:2px solid #d0e773;border-radius:50%;font:bold clamp(12px,2.3vw,26px) Arial;padding:0 4%}
+.calendar-day.today{outline:3px solid #ffe75f;outline-offset:-3px;border-radius:18px}
+.calendar-day:focus-visible{outline:3px solid white}
+.streak-banner{display:flex;gap:2%;align-items:stretch;margin:2% 5%;padding:1.2%;background:#a8c96ddf;border:3px solid #639332;border-radius:35px}
+.future-capybara{width:27%;flex-shrink:0}
+.streak-message{flex:1;background:#fff3ca;border-radius:25px;padding:3% 2%;text-align:center;font-family:Arial}
+.streak-message h2{font-size:clamp(15px,2.8vw,31px);margin:0 0 8px}
+.streak-message p{font-size:clamp(12px,2.3vw,26px);margin:0;line-height:1.4}
+.streak-message b{color:#c97616}
+.next-reward{width:27%;border-radius:22px;background:#f3dfa3;padding:2%;text-align:center;font:clamp(10px,1.9vw,23px) Arial}
+.next-reward span{display:block;font-size:clamp(32px,7vw,85px)}
+.next-reward strong{display:block}
+.reward-help{margin:3%;background:#fff5dceF;padding:16px;border-radius:16px;font:16px/1.5 Arial}
+dialog{border:3px solid #6b8c27;border-radius:20px;background:#fff6d7;max-width:90%;color:#25421d;font:17px/1.5 Arial}
+dialog::backdrop{background:#05290a99}
+#closeDay{float:right}
+#dayAction{display:block;background:#588c1b;color:white;padding:12px;border-radius:12px;text-align:center}
+button,a{touch-action:manipulation}
+@media(max-width:480px){.month-progress{border-radius:15px}
+.calendar-days{gap:5px 1%}
+.streak-banner{margin:3% 2%;border-radius:20px}
+.streak-message,.next-reward{border-radius:14px}
+}
+
+.weekdays,.calendar-days{position:relative}
+.day-icon{overflow:hidden}
+
+
+/* Dos piezas: título arriba y tablero que crece con las semanas. */
+.calendar-board {
+  margin: 1% 1% 0;
+  container-type: inline-size;
+}
+
+.month-heading {
+  position: relative;
+  aspect-ratio: 2172 / 545;
+  z-index: 1;
+}
+
+.month-wood, .lower-wood {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.month-heading h1 {
+  position: absolute;
+  top: 14%;
+  left: 20%;
+  width: 60%;
+  margin: 0;
+  text-align: center;
+  font-size: 7.4cqw;
+  line-height: 1;
+  color: #fff6d5;
+  text-shadow: 2px 3px 2px #50320c;
+}
+
+.month-heading small {
+  position: absolute;
+  top: 48%;
+  left: 40%;
+  width: 20%;
+  text-align: center;
+  color: #fff1ce;
+  font: bold 1.6cqw Arial;
+}
+
+.month-heading button {
+  position: absolute;
+  top: 35%;
+  width: 8%;
+  aspect-ratio: 1;
+  border: 3px solid #d6a54f;
+  border-radius: 50%;
+  background: linear-gradient(#e7b75c,#a16b21);
+  color: #fff7d8;
+  font-size: 4cqw;
+  box-shadow: 0 3px 2px #5a390f;
+  cursor: pointer;
+  padding: 0;
+}
+
+#previousMonth { left: 5%; }
+
+#nextMonth { right: 5%; }
+
+.calendar-lower {
+  position: relative;
+  margin: -3% 3% 0;
+  padding: 3% 3% 4%;
+}
+
+.month-progress { position: relative; margin: 0 0 2%; }
+
+.calendar-grid-wrap { position: relative; padding: 0 1%; }
+
+.weekdays { font-size: 2.9cqw; }
+
+.month-progress { font-size: 2.6cqw; }
+
+.month-progress progress { height: 4.8cqw; }
+
+.calendar-days { gap: 1cqw 1%; }
+

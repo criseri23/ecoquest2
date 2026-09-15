@@ -1,0 +1,105 @@
+{
+  "timeZone": "America/Argentina/Buenos_Aires",
+  "visitXp": 5,
+  "recyclingXp": 10,
+  "challengeXp": 15,
+  "levelXp": 100,
+  "repeatStreakDays": 30,
+  "repeatStreakXp": 250,
+  "streakRewards": [
+    {
+      "days": 3,
+      "xp": 25
+    },
+    {
+      "days": 7,
+      "xp": 50
+    },
+    {
+      "days": 14,
+      "xp": 100
+    },
+    {
+      "days": 20,
+      "xp": 150
+    },
+    {
+      "days": 30,
+      "xp": 250
+    }
+  ],
+  "missions": [
+    {
+      "id": "novato-verde",
+      "name": "Novato verde",
+      "goal": 4,
+      "reward": 50
+    },
+    {
+      "id": "guardia-planeta",
+      "name": "Guardia del planeta",
+      "goal": 12,
+      "reward": 120
+    },
+    {
+      "id": "maestro-reciclaje",
+      "name": "Maestro del Reciclaje",
+      "goal": 25,
+      "reward": 120
+    },
+    {
+      "id": "ecoleyenda",
+      "name": "Ecoleyenda",
+      "goal": 50,
+      "reward": 120
+    },
+    {
+      "id": "bebe-carpincho",
+      "name": "Bebé carpincho",
+      "goal": 75,
+      "reward": 150
+    },
+    {
+      "id": "vecino-sustentable",
+      "name": "Vecino sustentable",
+      "goal": 100,
+      "reward": 180
+    },
+    {
+      "id": "guardian-caba",
+      "name": "Guardián de CABA",
+      "goal": 150,
+      "reward": 220
+    },
+    {
+      "id": "heroe-barrio",
+      "name": "Héroe del barrio",
+      "goal": 200,
+      "reward": 260
+    },
+    {
+      "id": "ciudad-verde",
+      "name": "Ciudad más verde",
+      "goal": 300,
+      "reward": 300
+    },
+    {
+      "id": "orgullo-porteno",
+      "name": "Orgullo porteño",
+      "goal": 500,
+      "reward": 500
+    },
+    {
+      "id": "carpincho-legendario",
+      "name": "Carpincho legendario",
+      "goal": 750,
+      "reward": 750
+    },
+    {
+      "id": "leyenda-caba",
+      "name": "Leyenda de CABA",
+      "goal": 1000,
+      "reward": 1000
+    }
+  ]
+}

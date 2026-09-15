@@ -3,52 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>EcoQuest - Ranking</title>
-  <link rel="stylesheet" href="../css/escanear.css?v=9">
+  <title>EcoQuest - Ranking CABA</title>
+  <link rel="stylesheet" href="../css/escanear.css?v=29">
+  <link rel="stylesheet" href="../css/ranking.css?v=3">
+<link rel="stylesheet" href="../css/ecoquest-layout.css?v=1">
 </head>
 <body>
-  <main class="app-shell">
-    <header class="brand-bar">
-      <img src="../img/logoia-crop.png" alt="EcoQuest" class="brand-logo">
+  <main class="app-shell ranking-shell">
+    <header class="eco-header" aria-label="Tu progreso en EcoQuest">
+      <a class="eco-brand" href="inicio.html" aria-label="EcoQuest, inicio"><img src="../img/logoia-crop.png" alt="EcoQuest"></a>
+      <div class="eco-stats">
+        <span class="eco-stat" aria-label="Experiencia">🍃 <b data-total-xp>0</b> XP</span>
+        <span class="eco-stat">⭐ Nivel <b data-level>1</b></span>
+        <a class="eco-stat" href="calendario.html" title="Ver calendario y racha">🔥 Racha <b data-streak>0</b></a>
+      </div>
     </header>
-
-    <section class="scan-panel" aria-label="Ranking">
-      <article class="page-panel">
-        <h1>Ranking</h1>
-        <p>Consulta tu progreso, compara tu XP y sigue subiendo con cada escaneo correcto.</p>
-
-        <div class="progress-summary" aria-label="Resumen de progreso">
-          <div>
-            <span>XP total</span>
-            <strong id="rankingScore">0</strong>
-          </div>
-          <div>
-            <span>Escaneos</span>
-            <strong id="rankingScans">0</strong>
-          </div>
-          <div>
-            <span>Correctos</span>
-            <strong id="rankingSuccess">0</strong>
-          </div>
+    <section class="ranking-scroll" aria-label="Ranking de CABA" tabindex="0">
+<svg class="ranking-background" viewBox="0 138 1080 1697" preserveAspectRatio="none" aria-hidden="true"><image href="../img/fondo ranking.png" width="1080" height="1920"/></svg>
+      <div class="ranking-hero">
+        <div id="rankingWinners" aria-label="Los tres primeros de CABA"></div>
+        <h1>Ranking CABA</h1>
+        <p class="ranking-subtitle">Competí con recicladores de tu zona</p>
+        <div class="ranking-score" aria-label="Tu experiencia acumulada">
+<svg class="ranking-art" viewBox="232 392 582 225" preserveAspectRatio="none" aria-hidden="true"><image href="../img/e.png" width="1080" height="1920"/></svg>
+          <small>Tu progreso</small><strong id="rankingScore">0 XP</strong>
         </div>
-
-        <ol class="ranking-list" aria-label="Tabla de posiciones">
-          <li>
-            <span>1. EcoMaster</span>
-            <strong>120 XP</strong>
-          </li>
-          <li class="current-player">
-            <span>2. Vos</span>
-            <strong id="rankingPlayerScore">0 XP</strong>
-          </li>
-          <li>
-            <span>3. Reciclador</span>
-            <strong>35 XP</strong>
-          </li>
-        </ol>
+<svg class="ranking-podium" viewBox="145 750 735 309" preserveAspectRatio="none" aria-hidden="true"><image href="../img/f (2).png" width="1080" height="1920"/></svg>
+      </div>
+      <article class="ranking-board" aria-labelledby="rankingListTitle">
+        <header class="ranking-board-heading"><h2 id="rankingListTitle">
+<svg class="ranking-leaf" viewBox="105 1137 35 43" preserveAspectRatio="none" aria-hidden="true"><image href="../img/a (2).png" width="1080" height="1920"/></svg>Top 100</h2><button id="rankingMore" type="button" aria-expanded="false" aria-controls="rankingDetails">Ver más</button></header>
+        <ul id="rankingEntries" class="ranking-entries" aria-label="Clasificación de CABA"></ul>
+        <p id="rankingStatus" class="ranking-status" role="status">Cargando clasificación…</p>
+        <div class="ranking-account-actions"><button id="rankingJoin" type="button">Crear perfil / ingresar</button><button id="rankingPhoto" type="button" hidden>Cambiar foto</button><button id="rankingLogout" type="button" hidden>Salir</button><input id="profilePhotoUpdate" type="file" accept="image/*" hidden></div>
+        <div id="rankingDetails" class="ranking-details" hidden>
+          <h3>Tu actividad</h3>
+          <dl><div><dt>Residuos escaneados</dt><dd id="rankingScans">0</dd></div><div><dt>Residuos validados</dt><dd id="rankingSuccess">0</dd></div></dl>
+          <p>Tu XP incluye el reciclaje y los bonus de logros completados. Con una cuenta, tu XP validado se guarda en el servidor.</p>
+          <a href="misiones.html">Seguí sumando con tus misiones</a>
+        </div>
       </article>
     </section>
-
     <nav class="bottom-nav" aria-label="Navegacion principal">
       <a class="nav-item" href="inicio.html">
         <img src="../img/inicio-crop.png" alt="" aria-hidden="true">
@@ -75,7 +70,25 @@
         <span>Config</span>
       </a>
     </nav>
+    <dialog id="accountDialog" aria-labelledby="accountTitle">
+      <form id="accountForm">
+        <button id="accountClose" type="button" aria-label="Cerrar" class="account-close">×</button>
+        <h2 id="accountTitle">Tu perfil en CABA</h2>
+        <p>Tu nombre, foto y XP aparecerán en el ranking.</p>
+        <label>Nombre de usuario<input name="name" required minlength="3" maxlength="24" autocomplete="username"></label>
+        <label>Contraseña<input name="password" type="password" required minlength="8" maxlength="128" autocomplete="current-password"></label>
+        <label id="registrationPhoto">Tu foto (opcional)<input name="photo" type="file" accept="image/*"></label>
+        <label id="registrationCity"><input name="city" type="checkbox" required> Participo en el reciclaje de CABA</label>
+        <p id="accountError" role="alert"></p>
+        <button id="accountSubmit" type="submit">Crear perfil</button>
+        <button id="accountToggle" type="button">Ya tengo cuenta</button>
+      </form>
+    </dialog>
   </main>
-  <script src="../js/ranking.js?v=1"></script>
+  <script src="../js/ecoquest-account.js?v=2"></script>
+<script src="../js/ecoquest-rules.js?v=1"></script>
+<script src="../js/ecoquest-state.js?v=6"></script>
+<script src="../js/ecoquest-activity.js?v=1"></script>
+  <script src="../js/ranking.js?v=3"></script>
 </body>
 </html>

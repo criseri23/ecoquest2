@@ -3,22 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>EcoQuest - Misiones</title>
-  <link rel="stylesheet" href="../css/escanear.css?v=5">
+  <title>EcoQuest - Misiones y logros de CABA</title>
+  <link rel="stylesheet" href="../css/escanear.css?v=29">
+  <link rel="stylesheet" href="../css/misiones.css?v=2">
+<link rel="stylesheet" href="../css/ecoquest-layout.css?v=1">
 </head>
 <body>
-  <main class="app-shell">
-    <header class="brand-bar">
-      <img src="../img/logoia-crop.png" alt="EcoQuest" class="brand-logo">
+  <main class="app-shell achievements-shell">
+    <header class="eco-header" aria-label="Tu progreso en EcoQuest">
+      <a class="eco-brand" href="inicio.html" aria-label="EcoQuest, inicio"><img src="../img/logoia-crop.png" alt="EcoQuest"></a>
+      <div class="eco-stats">
+        <span class="eco-stat" aria-label="Experiencia">🍃 <b id="missionXp" data-total-xp>0</b> XP</span>
+        <span class="eco-stat">⭐ Nivel <b data-level>1</b></span>
+        <a class="eco-stat" href="calendario.html" title="Ver calendario y racha">🔥 Racha <b id="missionStreak" data-streak>0</b></a>
+      </div>
     </header>
-
-    <section class="scan-panel" aria-label="Misiones">
-      <article class="page-panel">
+    <section class="achievements-scroll" aria-label="Misiones y logros de CABA" tabindex="0">
+      <header class="achievements-heading">
+        <svg class="achievement-art" viewBox="0 192 1080 162" preserveAspectRatio="none" aria-hidden="true"><image href="../img/cosoverde.png" width="1080" height="1920"/></svg>
         <h1>Misiones</h1>
-        <p>Completa retos diarios de reciclaje, gana puntos y desbloquea nuevas recompensas verdes.</p>
-      </article>
+        <p>Desbloqueá recompensas reciclando</p>
+      </header>
+      
+      <section id="streakAchievements" class="streak-achievements"></section>
+      <div id="achievementsList" class="achievements-list"></div>
+      <footer class="achievements-footer"><strong>Reciclamos en CABA</strong><p>Validá tus residuos en los contenedores del mapa de la Ciudad de Buenos Aires.</p><a href="mapa.html">Ver contenedores de CABA</a></footer>
+      <noscript><p>Activá JavaScript para ver tus logros y el progreso de reciclaje.</p></noscript>
     </section>
-
     <nav class="bottom-nav" aria-label="Navegacion principal">
       <a class="nav-item" href="inicio.html">
         <img src="../img/inicio-crop.png" alt="" aria-hidden="true">
@@ -46,5 +57,10 @@
       </a>
     </nav>
   </main>
+  <script src="../js/ecoquest-account.js?v=2"></script>
+<script src="../js/ecoquest-rules.js?v=1"></script>
+<script src="../js/ecoquest-state.js?v=6"></script>
+<script src="../js/ecoquest-activity.js?v=1"></script>
+  <script src="../js/misiones.js?v=3"></script>
 </body>
 </html>

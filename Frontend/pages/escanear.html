@@ -1,18 +1,20 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>EcoQuest - Escanear</title>
   <link rel="stylesheet" href="../css/escanear.css?v=11">
+<link rel="stylesheet" href="../css/ecoquest-layout.css?v=1">
 </head>
 <body>
   <main class="app-shell">
-    <header class="brand-bar">
-      <img src="../img/logoia-crop.png" alt="EcoQuest" class="brand-logo">
-      <div class="score-pill" aria-live="polite">
-        <span>XP</span>
-        <strong id="scoreTotal">0</strong>
+    <header class="eco-header" aria-label="Tu progreso en EcoQuest">
+      <a class="eco-brand" href="inicio.html" aria-label="EcoQuest, inicio"><img src="../img/logoia-crop.png" alt="EcoQuest"></a>
+      <div class="eco-stats">
+        <span class="eco-stat" aria-label="Experiencia">🍃 <b id="scoreTotal" data-total-xp>0</b> XP</span>
+        <span class="eco-stat">⭐ Nivel <b data-level>1</b></span>
+        <a class="eco-stat" href="calendario.html" title="Ver calendario y racha">🔥 Racha <b data-streak>0</b></a>
       </div>
     </header>
 
@@ -83,7 +85,10 @@
     </nav>
   </main>
 
-  <script src="../js/ecoquest-state.js?v=2"></script>
-  <script src="../js/escanear.js?v=12"></script>
+  <script src="../js/ecoquest-account.js?v=2"></script>
+<script src="../js/ecoquest-rules.js?v=1"></script>
+<script src="../js/ecoquest-state.js?v=6"></script>
+<script src="../js/ecoquest-activity.js?v=1"></script>
+  <script src="../js/escanear.js?v=30"></script>
 </body>
 </html>

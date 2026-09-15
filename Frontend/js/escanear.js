@@ -1,3 +1,4 @@
+window.EcoQuestReady.then(() => {
 const scanButton = document.querySelector("#scanButton");
 const resultCard = document.querySelector("#resultCard");
 const camera = document.querySelector("#camera");
@@ -15,8 +16,10 @@ const CAPTURE_JPEG_QUALITY = 0.72;
 
 setButtonIdle();
 updateScoreHud();
+window.addEventListener("ecoquest:progress", () => updateScoreHud());
 
 function getApiEndpoint() {
+  if (window.EcoQuestAccount) return window.EcoQuestAccount.apiOrigin + "/api/ia/analizar";
   if (!window.location.protocol.startsWith("http")) {
     return "http://localhost:5228/api/ia/analizar";
   }
@@ -307,6 +310,7 @@ async function scanWaste() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...window.EcoQuestAccount?.headers,
       },
       body: JSON.stringify({ imageDataUrl }),
       signal: abortController.signal,
@@ -366,3 +370,5 @@ function readErrorMessage(responseText) {
 
 scanButton.addEventListener("click", scanWaste);
 startCamera();
+
+});

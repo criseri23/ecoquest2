@@ -7,15 +7,18 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-  <link rel="stylesheet" href="../css/escanear.css?v=15">
+  <link rel="stylesheet" href="../css/escanear.css?v=31">
+  <link rel="stylesheet" href="../css/mapa.css?v=1">
+<link rel="stylesheet" href="../css/ecoquest-layout.css?v=1">
 </head>
 <body>
-  <main class="app-shell">
-    <header class="brand-bar">
-      <img src="../img/logoia-crop.png" alt="EcoQuest" class="brand-logo">
-      <div class="score-pill" aria-live="polite">
-        <span>XP</span>
-        <strong id="scoreTotal">0</strong>
+  <main class="app-shell map-shell">
+    <header class="eco-header" aria-label="Tu progreso en EcoQuest">
+      <a class="eco-brand" href="inicio.html" aria-label="EcoQuest, inicio"><img src="../img/logoia-crop.png" alt="EcoQuest"></a>
+      <div class="eco-stats">
+        <span class="eco-stat" aria-label="Experiencia">🍃 <b id="scoreTotal" data-total-xp>0</b> XP</span>
+        <span class="eco-stat">⭐ Nivel <b data-level>1</b></span>
+        <a class="eco-stat" href="calendario.html" title="Ver calendario y racha">🔥 Racha <b data-streak>0</b></a>
       </div>
     </header>
 
@@ -25,9 +28,10 @@
           <img src="../img/hoja-crop.png" alt="" aria-hidden="true">
           <span id="pendingCount">0 pendientes</span>
         </div>
-        <button id="locateButton" class="locate-button" type="button" aria-label="Usar ubicacion">
-          <img src="../img/mapa-crop.png" alt="" aria-hidden="true">
+        <button id="locateButton" class="locate-button" type="button" aria-label="Mostrar mi ubicación">
+          <span id="locateLabel">Mi ubicación</span>
         </button>
+        <button id="nearestButton" class="locate-button" type="button">Buscar cercano</button>
       </div>
 
       <div class="official-map-shell" aria-label="Mapa oficial con contenedores">
@@ -39,17 +43,27 @@
         <button id="expandMapButton" class="expand-map-button" type="button">Expandir mapa</button>
       </div>
 
+      <div class="map-legend" aria-label="Referencias del mapa"><span><i class="legend-green"></i>Reciclables</span><span><i class="legend-black"></i>Basura común</span><span><i class="legend-special">★</i>Punto Verde</span></div>
       <article class="map-info-card" aria-live="polite">
         <div class="map-card-icon" aria-hidden="true">
           <img src="../img/mapa-crop.png" alt="">
         </div>
         <div class="map-card-copy">
+          <span id="selectedPointType" class="point-type">Elegí un punto</span>
           <h1 id="selectedPointName">Contenedores oficiales</h1>
           <p id="selectedPointAddress">Ciudad de Buenos Aires</p>
           <div class="map-distance-summary">
             <span id="selectedPointDistance">Distancia pendiente</span>
           </div>
           <p id="locationStatus">Toca el boton de ubicacion para encontrar el contenedor cercano.</p>
+          <p id="pointExplanation"></p>
+          <a id="specialPointInfo" href="https://buenosaires.gob.ar/gcaba_historico/noticias/puntos-verdes-donde-se-pueden-dejar-los-reciclables" target="_blank" rel="noopener noreferrer" hidden>Consultar recepción y horarios de Puntos Verdes</a>
+          <div id="mapDirections" class="map-directions" hidden>
+            <label for="travelMode">Cómo querés ir</label>
+            <select id="travelMode"><option value="walking">Caminando</option><option value="transit">Transporte público</option><option value="driving">En auto</option></select>
+            <a id="googleMapsLink" target="_blank" rel="noopener noreferrer">Cómo llegar con Google Maps ↗</a>
+            <small>Abre el mismo destino en Google Maps. Podés volver a EcoQuest para validar.</small>
+          </div>
           <div id="pendingPreview" class="pending-preview"></div>
           <div class="map-actions">
             <button id="verifyButton" class="verify-button" type="button">Verificar reciclaje</button>
@@ -88,7 +102,10 @@
   </main>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <script src="../js/ecoquest-state.js?v=2"></script>
-  <script src="../js/mapa.js?v=6"></script>
+  <script src="../js/ecoquest-account.js?v=2"></script>
+<script src="../js/ecoquest-rules.js?v=1"></script>
+<script src="../js/ecoquest-state.js?v=6"></script>
+<script src="../js/ecoquest-activity.js?v=1"></script>
+  <script src="../js/mapa.js?v=31"></script>
 </body>
 </html>

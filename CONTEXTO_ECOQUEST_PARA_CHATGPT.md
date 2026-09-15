@@ -907,3 +907,17 @@ EcoQuest no busca ser perfecto todavia. Busca ser:
 - Progresivo: primero demo funcional, despues base de datos real y usuarios.
 
 Cuando haya duda, elegir la solucion mas clara para estudiante, no la mas sofisticada.
+
+## Preferencia confirmada — 14/09/2026
+Mantener código sencillo, explicable por una estudiante de 17 años, con comentarios básicos. Respetar las tres capas y aplicar encapsulamiento, constructores, sobrecarga, herencia y polimorfismo donde tengan sentido. No rehacer la arquitectura ni introducir complejidad innecesaria.
+
+## Calendario y XP (14/09/2026)
+- Las reglas compartidas están en Frontend/data/rewards.json. El servidor y las pantallas leen ese archivo.
+- Entrada diaria: 5 XP. Residuo validado: 10 XP. Primer residuo validado del día: 15 XP extra y una casilla completada.
+- Racha de uso: 3 días +25 XP, 7 +50, 14 +100, 20 +150, 30 +250; después cada 30 días +250. Cada hito se cobra una vez por cuenta. Si falta un día se reinicia la racha, pero no se borran XP ni premios.
+- Nivel = 1 + parte entera de XP/100. Se conservan los bonus de reciclaje de Logros; no hay otra moneda activa.
+- La fecha se toma en Buenos Aires. Las cuentas usan fecha del servidor y guardan días en RankingDays; los invitados usan el reloj y almacenamiento del navegador. No se inventan días anteriores al calendario.
+- Calendario cuenta desafíos diarios, mientras que la racha cuenta entradas diarias. Las tarjetas explican la diferencia. El área del carpincho inferior queda vacía por pedido de la usuaria.
+- Pruebas: ejecutar desde la raíz `dotnet run --project tests/RewardTests/Tests.csproj`. Usan una base independiente en .local-build; no modifican usuarios reales.
+
+- Encabezado compartido: todas las páginas usan .eco-header con XP, nivel y racha reales. El enlace de racha abre Calendario. Frontend/css/ecoquest-layout.css reúne ese estilo y el navbar de seis botones. El progreso mensual conserva el elemento progress y se muestra integrado en la madera.
