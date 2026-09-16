@@ -2,6 +2,8 @@ window.EcoQuestReady.then(() => {
   const store = window.EcoQuestStorage, activity = window.EcoQuestActivity, rules = window.EcoQuestRules;
   const today = activity.today();
   let year = Number(today.slice(0,4)), month = Number(today.slice(5,7))-1;
+  const requestedYear = Number(new URLSearchParams(location.search).get('year'));
+  if (Number.isInteger(requestedYear) && requestedYear >= 2000 && requestedYear <= 2100) year = requestedYear;
   const requested = Number(new URLSearchParams(location.search).get('month'));
   if (requested >= 1 && requested <= 12) month = requested-1;
   const names = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];

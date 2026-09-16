@@ -54,3 +54,11 @@
 .streak-flame { display: inline-block; transform-origin: center bottom; animation: streak-flicker 1.1s ease-in-out infinite alternate; }
 @keyframes streak-flicker { 0% { transform: rotate(-9deg) scale(.94, 1); } 45% { transform: translateY(-2px) rotate(5deg) scale(1.05, 1.12); } 100% { transform: rotate(-3deg) scale(1, 1.06); } }
 @media (prefers-reduced-motion: reduce) { .streak-flame { animation: none; } .achievement-card progress::-webkit-progress-value, .achievement-card progress::-moz-progress-bar { transition: none; } }
+/* Las rachas conservan el formato verde de las otras misiones. */
+.streak-achievements { padding: 0; }
+.streak-heading { padding: 2cqw 5cqw 5cqw; color: #294717; }
+.streak-heading h2 { margin: 0 0 8px; font-size: 5cqw; }
+.streak-heading a { color: #355c1b; font-weight: bold; }
+.achievements-heading { margin-bottom: 5cqw; }
+.achievement-card h2 { max-width: 100%; white-space: normal; font-size: 4.7cqw; }
+.achievement-card p { font-size: 3.4cqw; }

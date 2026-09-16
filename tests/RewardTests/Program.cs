@@ -1,3 +1,8 @@
+using EcoQuest.Datos.Context;
+using EcoQuest.Datos.Entities;
+using EcoQuest.Datos.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using EcoQuestAPI.Services;
 using EcoQuest.Logica.Services;
 using Microsoft.AspNetCore.Builder;
@@ -30,3 +35,25 @@ Check(Profile(user).GetProperty("activity").GetProperty("challenges").GetArrayLe
 Check(rules.Streak(new[]{today.AddDays(-2).ToString("yyyy-MM-dd")},rules.Today())==0,"missed day resets streak");
 Check(rules.Streak(new[]{"2024-02-28","2024-02-29","2024-03-01"},"2024-03-01")==3,"leap day and month boundary");
 Parallel.For(0,5,_=>store.Visit(user));Check(Profile(user).GetProperty("xp").GetInt32()==365,"concurrent visits cannot duplicate reward");
+
+var authPath = Path.Combine(root, ".local-build/reward-tests/" + Guid.NewGuid() + "-auth.db");
+var options = new DbContextOptionsBuilder<EcoQuestDbContext>().UseSqlite("Data Source=" + authPath).Options;
+using var context = new EcoQuestDbContext(options);
+context.Database.EnsureCreated();
+var auth = new AuthService(new UsuarioRepository(context), new PasswordHasher<Usuario>());
+var registered = await auth.RegistrarAsync("Cuenta integrada", "  PRUEBA@example.test ", "TestOnly123!", default);
+Check(registered != null && registered.Email == "prueba@example.test", "registration normalizes email");
+Check(registered!.PasswordHash != "TestOnly123!", "password stored as hash");
+Check(await auth.RegistrarAsync("Otra", "prueba@example.test", "TestOnly123!", default) == null, "duplicate email rejected");
+Check(await auth.LoginAsync("prueba@example.test", "incorrecta", default) == null, "incorrect password rejected");
+var authenticated = await auth.LoginAsync("PRUEBA@example.test", "TestOnly123!", default);
+Check(authenticated?.Id == registered.Id, "email login returns same account");
+var linked = store.LinkAccount(registered.Email, registered.Nombre, 80);
+store.Visit(linked);
+Check(store.LinkAccount(registered.Email, registered.Nombre, 500) == linked, "login reuses linked profile");
+Check(Profile(linked).GetProperty("xp").GetInt32() == 85, "existing experience imported only once");
+var other = store.LinkAccount("otra@example.test", registered.Nombre, 0);
+Check(other != linked && Profile(other).GetProperty("xp").GetInt32() == 0, "same name cannot take another account");
+Check(store.Login(Profile(linked).GetProperty("name").GetString()!, "external") == null, "email account cannot bypass password verification");
+var session = store.Session(linked);
+Check(store.Authenticate("Bearer " + session) == linked, "integrated account can use protected endpoints");

@@ -146,3 +146,42 @@
 .month-progress progress::-webkit-progress-bar { background: #724515; box-shadow: inset 0 2px 4px #2d1c0b99; }
 .month-progress progress::-webkit-progress-value { background: linear-gradient(#b5df4b, #548e15); border-radius: 12px; }
 .month-progress progress::-moz-progress-bar { background: linear-gradient(#b5df4b, #548e15); }
+
+/* Centramos números y verificados en los círculos del dibujo. */
+.home-level-link strong {
+  top: 79%; bottom: auto; left: 51%;
+  font-size: clamp(13px, 4.3cqw, 19px);
+  transform: translate(-50%, -50%);
+}
+.home-level-link-bag strong { top: 83%; bottom: auto; left: 48.5%; }
+.home-check, .home-level-link-bag .home-check {
+  top: 24%; right: auto; left: 81%;
+  width: 22%; height: auto; aspect-ratio: 1;
+  font-size: 3cqw; transform: translate(-50%, -50%);
+  border-width: 1px;
+}
+.home-level-link-bag .home-check { top: 33%; left: 77%; }
+.home-check[hidden] { display: none; }
+/* Una misma app se adapta al ancho del dispositivo. */
+:root { --app-width: 430px; }
+.app-shell, .calendar-app { width: 100%; max-width: var(--app-width); }
+.calendar-app {
+  position: relative;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #6e983b #163f22;
+}
+.calendar-app .eco-header { position: sticky; top: 0; z-index: 10; background: #073e22; }
+.calendar-app .bottom-nav { width: min(100%, var(--app-width)); }
+@media (min-width: 768px) {
+  .app-shell, .calendar-app { box-shadow: 0 0 35px #001e1870; }
+}
+/* El texto del calendario escala con el tablero, no con todo el monitor. */
+.calendar-app .day-number { font-size: clamp(12px, 2.5cqw, 24px); }
+.calendar-app .day-check { font-size: clamp(12px, 2.3cqw, 23px); }
+.calendar-app .streak-message h2 { font-size: clamp(15px, 3.3cqw, 25px); }
+.calendar-app .streak-message p { font-size: clamp(12px, 2.5cqw, 19px); }
+.calendar-app .next-reward { font-size: clamp(11px, 2.3cqw, 18px); }
+.calendar-app .next-reward span { font-size: clamp(32px, 7cqw, 60px); }

@@ -4,10 +4,7 @@ window.EcoQuestReady.then(() => {
   const more = document.querySelector("#rankingMore");
   const details = document.querySelector("#rankingDetails");
   const status = document.querySelector("#rankingStatus");
-  const dialog = document.querySelector("#accountDialog");
-  const form = document.querySelector("#accountForm");
-  const errorBox = document.querySelector("#accountError");
-  let expanded = false, registering = true, loading = false;
+  let expanded = false, loading = false;
   function avatar(user) {
     const img = document.createElement("img"); img.alt = `Foto de ${user.name}`;
     img.src = user.photoUrl ? account.apiOrigin + user.photoUrl : "../img/carpincho-crop.png";
@@ -51,14 +48,7 @@ window.EcoQuestReady.then(() => {
   more.addEventListener("click", () => {
     expanded = !expanded; more.setAttribute("aria-expanded", String(expanded)); more.textContent = expanded ? "Ver menos" : "Ver más"; details.hidden = !expanded; refresh();
   });
-  document.querySelector("#rankingJoin").addEventListener("click", () => dialog.showModal());
-  document.querySelector("#accountClose").addEventListener("click", () => dialog.close());
-  document.querySelector("#accountToggle").addEventListener("click", () => {
-    registering = !registering; document.querySelector("#registrationPhoto").hidden = !registering; document.querySelector("#registrationCity").hidden = !registering; form.elements.city.required = registering;
-    document.querySelector("#accountSubmit").textContent = registering ? "Crear perfil" : "Ingresar";
-    document.querySelector("#accountToggle").textContent = registering ? "Ya tengo cuenta" : "Crear una cuenta";
-    form.elements.password.autocomplete = registering ? "new-password" : "current-password"; errorBox.textContent = "";
-  });
+  document.querySelector("#rankingJoin").addEventListener("click", () => { location.href = "elegir.html"; });
   async function readPhoto(file) {
     if (!file) return "";
     if (file.size > 10 * 1024 * 1024) throw new Error("Elegí una imagen de menos de 10 MB.");
@@ -69,15 +59,6 @@ window.EcoQuestReady.then(() => {
     ctx.drawImage(bitmap,(bitmap.width-side)/2,(bitmap.height-side)/2,side,side,0,0,192,192);bitmap.close();
     return canvas.toDataURL("image/jpeg", .85);
   }
-  form.addEventListener("submit", async event => {
-    event.preventDefault(); const submit = document.querySelector("#accountSubmit"); submit.disabled = true; errorBox.textContent = "";
-    try {
-      const photo = registering ? await readPhoto(form.elements.photo.files[0]) : "";
-      const result = await account.request(`/api/ranking/${registering ? "register" : "login"}`, { method: "POST", body: JSON.stringify({ name: form.elements.name.value, password: form.elements.password.value, photo, city: "CABA" }) });
-      account.save(result); location.reload();
-    } catch (error) { errorBox.textContent = error.message; }
-    finally { submit.disabled = false; }
-  });
   document.querySelector("#rankingLogout").addEventListener("click", async () => { try { await account.logout(); } catch(error) { status.textContent = error.message; } });
   const photoInput = document.querySelector("#profilePhotoUpdate");
   document.querySelector("#rankingPhoto").addEventListener("click", () => photoInput.click());

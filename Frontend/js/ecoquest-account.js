@@ -7,7 +7,7 @@
     const response = await fetch(apiOrigin + path, { ...options, signal: options.signal || AbortSignal.timeout(85000), headers: { "Content-Type": "application/json", ...(session?.token ? { Authorization: `Bearer ${session.token}` } : {}), ...options.headers } });
     const body = await response.json().catch(() => ({}));
     if (response.status === 401 && session) { localStorage.removeItem(key); session = null; location.reload(); }
-    if (!response.ok) throw new Error(body.error || (response.status === 401 ? "Tu sesión venció. Volvé a iniciar sesión." : "No se pudo conectar. Intentá nuevamente."));
+    if (!response.ok) throw new Error(body.error || body.mensaje || (response.status === 401 ? "Tu sesión venció. Volvé a iniciar sesión." : "No se pudo conectar. Intentá nuevamente."));
     return body;
   }
   function applyProfile(profile) {

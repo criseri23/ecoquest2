@@ -17,9 +17,13 @@ public static class DependencyInjection
 
         services.AddDbContext<EcoQuestDbContext>(options =>
         {
-            options.UseSqlite(connectionString);
+            if (configuration["Database:Provider"] == "MySQL")
+                options.UseMySQL(connectionString);
+            else
+                options.UseSqlite(connectionString);
         });
 
+        services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddSingleton<IRecyclingPointRepository, OfficialRecyclingPointRepository>();
 
         return services;

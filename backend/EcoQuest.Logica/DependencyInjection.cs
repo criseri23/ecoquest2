@@ -1,3 +1,5 @@
+using EcoQuest.Datos.Entities;
+using Microsoft.AspNetCore.Identity;
 using EcoQuest.Datos;
 using EcoQuest.Logica.Interfaces;
 using EcoQuest.Logica.Services;
@@ -17,6 +19,8 @@ public static class DependencyInjection
         services.AddScoped<IRecyclingPointService, RecyclingPointService>();
         services.AddScoped<IWasteAnalysisService, WasteAnalysisService>();
 
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IPasswordHasher<Usuario>, PasswordHasher<Usuario>>();
         return services;
     }
 }

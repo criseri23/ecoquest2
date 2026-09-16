@@ -8,6 +8,8 @@ public class Usuario
 
     public string Email { get; set; } = string.Empty;
 
+    public string PasswordHash { get; set; } = string.Empty;
+
     public int Nivel { get; set; } = 1;
 
     public int Experiencia { get; set; }

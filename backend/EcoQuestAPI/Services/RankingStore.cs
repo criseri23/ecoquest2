@@ -25,6 +25,7 @@ public sealed class RankingStore
             CREATE TABLE IF NOT EXISTS RankingSessions(Token TEXT PRIMARY KEY, UserId TEXT NOT NULL, Expires TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS RankingScans(Id TEXT PRIMARY KEY, UserId TEXT NOT NULL, Points INTEGER NOT NULL,
                 Container TEXT NOT NULL, Used INTEGER NOT NULL DEFAULT 0);
+            CREATE TABLE IF NOT EXISTS AuthProfiles(Email TEXT PRIMARY KEY, RankingUserId TEXT NOT NULL UNIQUE);
             CREATE TABLE IF NOT EXISTS RankingDays(UserId TEXT NOT NULL, Day TEXT NOT NULL, Visited INTEGER NOT NULL DEFAULT 0, Challenge INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(UserId, Day));
             CREATE TABLE IF NOT EXISTS RankingRewards(UserId TEXT NOT NULL, Mission TEXT NOT NULL, PRIMARY KEY(UserId,Mission));
             """);
@@ -57,6 +58,7 @@ public sealed class RankingStore
         using var db=Open();using var cmd=Command(db,"SELECT Id,Password FROM RankingUsers WHERE Name=@p0",name.Trim());using var reader=cmd.ExecuteReader();
         if(!reader.Read())return null;
         var stored=reader.GetString(1).Split(':');
+        if (stored.Length != 2) return null;
         var hash=Rfc2898DeriveBytes.Pbkdf2(password,Convert.FromBase64String(stored[0]),100000,HashAlgorithmName.SHA256,32);
         return CryptographicOperations.FixedTimeEquals(hash,Convert.FromBase64String(stored[1]))?reader.GetString(0):null;
     }
@@ -66,6 +68,30 @@ public sealed class RankingStore
         Execute(db,"DELETE FROM RankingSessions WHERE Expires<=@p0",DateTime.UtcNow.ToString("O"));
         Execute(db,"INSERT INTO RankingSessions VALUES(@p0,@p1,@p2)",Hash(token),id,DateTime.UtcNow.AddDays(30).ToString("O"));return token;
     }
+    // Vinculamos el usuario del login con su progreso sin cambiar cuentas anteriores.
+    public string LinkAccount(string email, string name, int initialXp)
+    {
+        using var db = Open();
+        using var transaction = db.BeginTransaction();
+        using var existing = Command(db, "SELECT RankingUserId FROM AuthProfiles WHERE Email=@p0", email);
+        if (existing.ExecuteScalar() is string previous) return previous;
+
+        var id = Guid.NewGuid().ToString("N");
+        var displayName = name;
+        int suffix = 2;
+        while (true)
+        {
+            using var taken = Command(db, "SELECT COUNT(*) FROM RankingUsers WHERE Name=@p0", displayName);
+            if (Convert.ToInt32(taken.ExecuteScalar()) == 0) break;
+            displayName = name + " " + suffix++;
+        }
+        Execute(db, "INSERT INTO RankingUsers(Id,Name,Password,City,Xp,Created) VALUES(@p0,@p1,@p2,'CABA',@p3,@p4)",
+            id, displayName, "external", Math.Max(0, initialXp), DateTime.UtcNow.ToString("O"));
+        Execute(db, "INSERT INTO AuthProfiles VALUES(@p0,@p1)", email, id);
+        transaction.Commit();
+        return id;
+    }
+
     public object Profile(string id)
     {
         using var db=Open();using var cmd=Command(db,"SELECT Name,Xp,Validated,Photo FROM RankingUsers WHERE Id=@p0",id);using var r=cmd.ExecuteReader();r.Read();

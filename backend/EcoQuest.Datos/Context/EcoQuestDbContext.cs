@@ -10,6 +10,12 @@ public class EcoQuestDbContext : DbContext
     {
     }
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Usuario>().Property(usuario => usuario.Email).HasMaxLength(254);
+        modelBuilder.Entity<Usuario>().HasIndex(usuario => usuario.Email).IsUnique();
+    }
+
     public DbSet<Usuario> Usuarios { get; set; }
 
     public DbSet<Residuo> Residuos { get; set; }

@@ -6,7 +6,7 @@
   <title>EcoQuest - Ranking CABA</title>
   <link rel="stylesheet" href="../css/escanear.css?v=29">
   <link rel="stylesheet" href="../css/ranking.css?v=3">
-<link rel="stylesheet" href="../css/ecoquest-layout.css?v=1">
+<link rel="stylesheet" href="../css/ecoquest-layout.css?v=4">
 </head>
 <body>
   <main class="app-shell ranking-shell">
@@ -70,22 +70,8 @@
         <span>Config</span>
       </a>
     </nav>
-    <dialog id="accountDialog" aria-labelledby="accountTitle">
-      <form id="accountForm">
-        <button id="accountClose" type="button" aria-label="Cerrar" class="account-close">×</button>
-        <h2 id="accountTitle">Tu perfil en CABA</h2>
-        <p>Tu nombre, foto y XP aparecerán en el ranking.</p>
-        <label>Nombre de usuario<input name="name" required minlength="3" maxlength="24" autocomplete="username"></label>
-        <label>Contraseña<input name="password" type="password" required minlength="8" maxlength="128" autocomplete="current-password"></label>
-        <label id="registrationPhoto">Tu foto (opcional)<input name="photo" type="file" accept="image/*"></label>
-        <label id="registrationCity"><input name="city" type="checkbox" required> Participo en el reciclaje de CABA</label>
-        <p id="accountError" role="alert"></p>
-        <button id="accountSubmit" type="submit">Crear perfil</button>
-        <button id="accountToggle" type="button">Ya tengo cuenta</button>
-      </form>
-    </dialog>
   </main>
-  <script src="../js/ecoquest-account.js?v=2"></script>
+  <script src="../js/ecoquest-account.js?v=3"></script>
 <script src="../js/ecoquest-rules.js?v=1"></script>
 <script src="../js/ecoquest-state.js?v=6"></script>
 <script src="../js/ecoquest-activity.js?v=1"></script>
