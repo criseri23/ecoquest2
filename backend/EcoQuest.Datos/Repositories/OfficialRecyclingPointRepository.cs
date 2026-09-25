@@ -51,28 +51,54 @@ public sealed class OfficialRecyclingPointRepository : IRecyclingPointRepository
             }
 
             var client = httpClientFactory.CreateClient();
-            client.Timeout = TimeSpan.FromSeconds(70);
+            client.Timeout = TimeSpan.FromSeconds(15);
 
-            var layerTasks = Layers.Select(layer => LoadLayerAsync(client, layer, cancellationToken));
+            var layerTasks = Layers.Select(layer => LoadAvailableLayerAsync(client, layer, cancellationToken));
             var layers = await Task.WhenAll(layerTasks);
             var officialPoints = layers.SelectMany(layer => layer).ToArray();
 
             if (officialPoints.Length == 0)
             {
-                return GreenPointCatalog.All;
+                return BundledRecyclingCatalog.All;
             }
 
             cachedPoints = officialPoints;
             cacheExpiresAt = DateTimeOffset.UtcNow.AddHours(6);
             return cachedPoints;
         }
-        catch
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            return GreenPointCatalog.All;
+            throw;
         }
         finally
         {
             refreshLock.Release();
+        }
+    }
+
+    private static async Task<IReadOnlyList<EcoMapPoint>> LoadAvailableLayerAsync(
+        HttpClient client, RecyclingLayer layer, CancellationToken cancellationToken)
+    {
+        var saved = BundledRecyclingCatalog.All.Where(point => layer.Category switch
+        {
+            "contenedores_verdes" => point is StreetContainerPoint { ContainerColor: "verde" },
+            "contenedores_negros" => point is StreetContainerPoint { ContainerColor: "negro" },
+            _ => point is SpecialGreenPoint
+        }).ToArray();
+
+        // EPOK recorta esta capa a 1.000 registros. BA Data contiene el archivo completo.
+        // La copia se actualiza con scripts/update-recycling-catalog.py.
+        if (layer.Category == "contenedores_verdes") return saved;
+        try
+        {
+            var live = await LoadLayerAsync(client, layer, cancellationToken);
+            return live.Count > 0 ? live : saved;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception error) when (error is HttpRequestException or OperationCanceledException or JsonException)
+        {
+            // Si falla una fuente, conservamos las otras y la última copia de esta capa.
+            return saved;
         }
     }
 
@@ -118,13 +144,15 @@ public sealed class OfficialRecyclingPointRepository : IRecyclingPointRepository
             return null;
         }
 
-        var lng = coordinates[0].GetDouble();
-        var lat = coordinates[1].GetDouble();
+        if (coordinates[0].ValueKind != JsonValueKind.Number || coordinates[1].ValueKind != JsonValueKind.Number ||
+            !coordinates[0].TryGetDouble(out var lng) || !coordinates[1].TryGetDouble(out var lat) ||
+            !double.IsFinite(lat) || !double.IsFinite(lng) || lat is < -90 or > 90 || lng is < -180 or > 180)
+            return null;
         var id = ReadFeatureText(
             feature,
             "Id",
             feature.TryGetProperty("id", out var featureId) ? featureId.ToString() : Guid.NewGuid().ToString());
-        var address = ReadFeatureText(feature, "Nombre", layer.DisplayName);
+        var address = ReadFeatureText(feature, "Nombre", ReadFeatureText(feature, "DireccionNormalizada", layer.DisplayName));
         var name = $"{layer.DisplayName} - {address}";
 
         if (layer.Category == "puntos_verdes")
@@ -161,67 +189,4 @@ public sealed class OfficialRecyclingPointRepository : IRecyclingPointRepository
         string DisplayName,
         string ContainerColor,
         string[] AcceptedContainers);
-}
-
-internal static class GreenPointCatalog
-{
-    public static IReadOnlyList<EcoMapPoint> All { get; } = new EcoMapPoint[]
-    {
-        new GreenPoint(
-            "palermo-corrientes",
-            "Punto verde - Palermo",
-            "Av. Corrientes 2345",
-            -34.5884,
-            -58.4111,
-            new[] { "Contenedor verde", "Vidrio", "Organico/compost" }),
-        new GreenPoint(
-            "plaza-italia",
-            "Punto verde - Plaza Italia",
-            "Av. Santa Fe 4100",
-            -34.5807,
-            -58.4214,
-            new[] { "Contenedor verde", "Vidrio" }),
-        new SpecialGreenPoint(
-            "distrito-arcos",
-            "Punto verde - Distrito Arcos",
-            "Paraguay 4979",
-            -34.5795,
-            -58.4297,
-            "Punto especial"),
-        new SpecialGreenPoint(
-            "botanico",
-            "Punto verde - Botanico",
-            "Av. Santa Fe 3951",
-            -34.5812,
-            -58.4176,
-            "Pilas/baterias"),
-        new GreenPoint(
-            "palermo-hollywood",
-            "Punto verde - Hollywood",
-            "Costa Rica 5600",
-            -34.5817,
-            -58.4381,
-            new[] { "Contenedor verde", "Vidrio" }),
-        new StreetContainerPoint(
-            "contenedor-verde-santa-fe-thames",
-            "Contenedor verde - Palermo",
-            "Av. Santa Fe y Thames",
-            -34.5825,
-            -58.4218,
-            "verde"),
-        new StreetContainerPoint(
-            "contenedor-verde-cabrera-bulnes",
-            "Contenedor verde - Palermo",
-            "Cabrera y Bulnes",
-            -34.5929,
-            -58.4147,
-            "verde"),
-        new StreetContainerPoint(
-            "contenedor-negro-honduras-fitz-roy",
-            "Contenedor negro - Palermo",
-            "Honduras y Fitz Roy",
-            -34.5857,
-            -58.4352,
-            "negro"),
-    };
 }

@@ -4,49 +4,6 @@ const OFFICIAL_BASE_LAYER_URL =
 
 const MAP_CENTER = [-34.6037, -58.3816];
 
-const DEFAULT_RECYCLING_POINTS = [
-  {
-    id: "contenedor-verde-santa-fe",
-    name: "Contenedor verde - Av. Santa Fe y Thames",
-    address: "Av. Santa Fe y Thames",
-    lat: -34.5825,
-    lng: -58.4218,
-    acceptedContainers: ["Contenedor verde", "Vidrio"],
-    containerColor: "verde",
-    type: "StreetContainerPoint",
-  },
-  {
-    id: "contenedor-verde-cabrera",
-    name: "Contenedor verde - Cabrera y Bulnes",
-    address: "Cabrera y Bulnes",
-    lat: -34.5929,
-    lng: -58.4147,
-    acceptedContainers: ["Contenedor verde", "Vidrio"],
-    containerColor: "verde",
-    type: "StreetContainerPoint",
-  },
-  {
-    id: "contenedor-negro-honduras",
-    name: "Contenedor negro - Honduras y Fitz Roy",
-    address: "Honduras y Fitz Roy",
-    lat: -34.5857,
-    lng: -58.4352,
-    acceptedContainers: ["Basura comun"],
-    containerColor: "negro",
-    type: "StreetContainerPoint",
-  },
-  {
-    id: "punto-verde-las-heras",
-    name: "Punto verde - Parque Las Heras",
-    address: "Parque Las Heras",
-    lat: -34.5844,
-    lng: -58.4067,
-    acceptedContainers: ["Contenedor verde", "Vidrio", "Punto especial", "Pilas/baterias"],
-    specialty: "Punto especial",
-    type: "SpecialGreenPoint",
-  },
-];
-
 class RecyclingPoint {
   constructor(config) {
     this.id = config.id;
@@ -166,7 +123,7 @@ class ContainerVerifier extends DistanceService {
 
   getCandidates(pendingScans) {
     if (pendingScans.length === 0) {
-      return this.points;
+      return this.points.filter(point => !point.isBlackStreetContainer);
     }
 
     return this.points.filter(point => pendingScans.some(scan => point.accepts(scan.container)));
@@ -245,11 +202,13 @@ class EcoQuestMapController {
     }
 
     if (this.selectedPoint) this.focusMapsOnLocation(this.selectedPoint);
-    this.setStatus("Tocá un marcador o usá Buscar cercano para elegir dónde llevar tus residuos.");
+    this.setStatus(this.points.length
+      ? `${this.points.length.toLocaleString("es-AR")} puntos y contenedores de CABA. Tocá Mi ubicación para buscar cerca tuyo.`
+      : "No se pudo cargar el catálogo. Revisá la conexión y recargá la página.");
   }
 
   bindEvents() {
-    this.elements.locateButton.addEventListener("click", () => this.requestLocation(false));
+    this.elements.locateButton.addEventListener("click", () => this.requestLocation(true));
     this.elements.nearestButton.addEventListener("click", () => this.requestLocation(true));
     this.elements.travelMode.addEventListener("change", () => this.updateDirections());
     this.elements.verifyButton.addEventListener("click", () => this.verifyRecycling());
@@ -363,8 +322,10 @@ class EcoQuestMapController {
   }
 
   async loadPoints() {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
     try {
-      const response = await fetch(this.getApiUrl("/api/contenedores"), { signal: AbortSignal.timeout(80000) });
+      const response = await fetch(this.getApiUrl("/api/contenedores"), { signal: controller.signal });
 
       if (!response.ok) {
         throw new Error("No se pudieron cargar los contenedores.");
@@ -372,10 +333,21 @@ class EcoQuestMapController {
 
       const points = await response.json();
       if (!Array.isArray(points) || !points.length) throw new Error("Sin puntos");
-      return points.filter(point => Number.isFinite(Number(point.lat)) && Number.isFinite(Number(point.lng))).map((point) => this.createPoint(point));
+      const valid = points.filter(point => point.lat != null && point.lng != null && Number.isFinite(Number(point.lat)) && Number.isFinite(Number(point.lng)) && Math.abs(Number(point.lat)) <= 90 && Math.abs(Number(point.lng)) <= 180);
+      if (!valid.length) throw new Error("Sin coordenadas válidas");
+      return valid.map((point) => this.createPoint(point));
     } catch {
       this.usingFallback = true;
-      return DEFAULT_RECYCLING_POINTS.map((point) => this.createPoint(point));
+      try {
+        const response = await fetch("../data/recycling-points.json");
+        if (!response.ok) throw new Error("Catálogo no disponible");
+        const catalog = await response.json();
+        return catalog.points.map((point) => this.createPoint(point));
+      } catch {
+        return [];
+      }
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
@@ -578,7 +550,12 @@ class EcoQuestMapController {
       : this.verifier.findNearest(this.currentPosition, pendingScans);
 
     if (!nearest) {
-      this.setStatus("No encontre contenedores cercanos para ese residuo.");
+      this.selectedPoint = null;
+      this.selectedDistance = null;
+      this.renderSelectedPoint();
+      if (this.mainMap?.selectedMarker) { this.mainMap.map.removeLayer(this.mainMap.selectedMarker); this.mainMap.selectedMarker = null; }
+      this.mainMap?.map.setView([this.currentPosition.lat, this.currentPosition.lng], 16);
+      this.setStatus("No hay puntos disponibles para ese residuo en el catálogo de CABA.");
       return;
     }
 
@@ -594,7 +571,8 @@ class EcoQuestMapController {
       : "";
 
     if (nearest.distance > 20000) {
-      this.setStatus("El punto de CABA está lejos de tu ubicación. Mostramos el destino; abrí Google Maps para consultar el recorrido.");
+      this.mainMap?.map.setView([this.currentPosition.lat, this.currentPosition.lng], 15, { animate: false });
+      this.setStatus("El catálogo cubre CABA; no encontramos un punto a menos de 20 km. El mapa queda en tu ubicación.");
       return;
     }
     if (this.currentPosition.accuracy > 150) {
@@ -779,7 +757,7 @@ class EcoQuestMapController {
   }
 
   setStatus(message) {
-    this.elements.locationStatus.textContent = (this.usingFallback ? "Catálogo sin conexión; puntos de referencia. " : "") + message;
+    this.elements.locationStatus.textContent = (this.usingFallback ? "API sin conexión; copia del catálogo oficial. " : "") + message;
   }
 
   escapeHtml(value) {
