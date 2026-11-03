@@ -1,28 +1,14 @@
 using EcoQuestAPI.Services;
 using EcoQuest.Datos.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
-using System.Data.Common;
 
 namespace EcoQuestAPI.Controllers;
 [ApiController, Route("api/ranking")]
 public sealed class RankingController(RankingStore store,IRecyclingPointRepository points):ControllerBase
 {
-    public record Account(string Name,string Password,string Photo="",string City="CABA");
     public record Verification(string[] ScanIds,string PointId,double Lat,double Lng,double Accuracy);
     private string? UserId()=>store.Authenticate(Request.Headers.Authorization.ToString());
     [HttpGet] public IActionResult List([FromQuery]int limit=10)=>Ok(new {city="CABA",users=store.Leaders(Math.Clamp(limit,1,100))});
-    [HttpPost("register"),EnableRateLimiting("accounts")]
-    public IActionResult Register(Account a) {
-        try {var id=store.Register(a.Name??"",a.Password??"",a.Photo??"",a.City);return Ok(new {token=store.Session(id),profile=store.Profile(id)});}
-        catch(ArgumentException e){return BadRequest(new {error=e.Message});}
-        catch(DbException e) when(store.IsDuplicateName(e)){return Conflict(new {error="Ese nombre de usuario ya está ocupado."});}
-    }
-    [HttpPost("login"),EnableRateLimiting("accounts")]
-    public IActionResult Login(Account a) {
-        if(a.Password is null||a.Password.Length>128)return Unauthorized();
-        var id=store.Login(a.Name??"",a.Password);return id is null?Unauthorized(new {error="Nombre o contraseña incorrectos."}):Ok(new {token=store.Session(id),profile=store.Profile(id)});
-    }
     [HttpPost("activity")] public IActionResult Visit() => UserId() is {} id ? Ok(store.Visit(id)) : Unauthorized();
     [HttpGet("me")]public IActionResult Me()=>UserId() is {} id?Ok(store.Profile(id)):Unauthorized();
     [HttpGet("progress")] public IActionResult Progress() => UserId() is {} id ? Ok(store.Progress(id)) : Unauthorized();

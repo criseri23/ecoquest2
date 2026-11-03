@@ -35,12 +35,7 @@ public sealed class AuthController(IAuthService authService, RankingStore rankin
     {
         var usuario = await authService.LoginAsync(request.Email, request.Contraseña, cancellationToken);
         if (usuario is null)
-        {
-            // Conservamos el acceso de perfiles de ranking viejos que no tienen cuenta por email.
-            if (!request.Email.Contains('@') && ranking.Login(request.Email, request.Contraseña) is { } legacyId)
-                return Ok(new { mensaje = "Inicio de sesión correcto.", token = ranking.Session(legacyId), profile = ranking.Profile(legacyId) });
             return Unauthorized(new { error = "Email o contraseña incorrectos." });
-        }
 
         var id = ranking.LinkAccount(usuario.Email, usuario.Nombre, usuario.Experiencia);
         return Ok(new { mensaje = "Inicio de sesión correcto.", token = ranking.Session(id), profile = ranking.Profile(id) });

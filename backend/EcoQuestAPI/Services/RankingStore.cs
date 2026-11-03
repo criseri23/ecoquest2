@@ -4,7 +4,6 @@ using Microsoft.Data.Sqlite;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace EcoQuestAPI.Services;
 
@@ -42,7 +41,7 @@ public sealed class RankingStore : IDisposable
         Execute(databaseLifetime,"""
             PRAGMA journal_mode=WAL;
             CREATE TABLE IF NOT EXISTS RankingUsers(Id TEXT PRIMARY KEY, Name TEXT NOT NULL COLLATE NOCASE UNIQUE,
-                Password TEXT NOT NULL, Photo TEXT NOT NULL DEFAULT '', City TEXT NOT NULL DEFAULT 'CABA', Xp INTEGER NOT NULL DEFAULT 0,
+                Photo TEXT NOT NULL DEFAULT '', City TEXT NOT NULL DEFAULT 'CABA', Xp INTEGER NOT NULL DEFAULT 0,
                 Validated INTEGER NOT NULL DEFAULT 0, Created TEXT NOT NULL);
             CREATE INDEX IF NOT EXISTS RankingScore ON RankingUsers(City, Xp DESC, Created, Id);
             CREATE TABLE IF NOT EXISTS RankingSessions(Token TEXT PRIMARY KEY, UserId TEXT NOT NULL, Expires TEXT NOT NULL);
@@ -93,35 +92,12 @@ public sealed class RankingStore : IDisposable
         return cmd.ExecuteNonQuery();
     }
 
-    public bool IsDuplicateName(DbException error) =>
-        error is SqliteException sqliteError && sqliteError.SqliteErrorCode == 19;
     public static string Hash(string token)=>Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
     public string? Authenticate(string? header)
     {
         if(header is null || !header.StartsWith("Bearer "))return null;
         using var db=Open();using var cmd=Command(db,"SELECT UserId FROM RankingSessions WHERE Token=@p0 AND Expires>@p1",Hash(header[7..]),DateTime.UtcNow.ToString("O"));
         return cmd.ExecuteScalar() as string;
-    }
-    public string Register(string name,string password,string photo,string city)
-    {
-        name=name.Trim();
-        if(!Regex.IsMatch(name,@"^[\p{L}\p{N}_ -]{3,24}$") || password.Length<8 || password.Length>128 || city!="CABA")
-            throw new ArgumentException("Usá un nombre de 3 a 24 caracteres, una contraseña de 8 a 128 caracteres y seleccioná CABA.");
-        ValidatePhoto(photo);
-        var salt=RandomNumberGenerator.GetBytes(16);
-        var hash=Rfc2898DeriveBytes.Pbkdf2(password,salt,100000,HashAlgorithmName.SHA256,32);
-        var id=Guid.NewGuid().ToString("N");using var db=Open();
-        Execute(db,"INSERT INTO RankingUsers(Id,Name,Password,Photo,City,Created) VALUES(@p0,@p1,@p2,@p3,'CABA',@p4)",id,name,Convert.ToBase64String(salt)+":"+Convert.ToBase64String(hash),photo,DateTime.UtcNow.ToString("O"));
-        return id;
-    }
-    public string? Login(string name,string password)
-    {
-        using var db=Open();using var cmd=Command(db,"SELECT Id,Password FROM RankingUsers WHERE Name=@p0",name.Trim());using var reader=cmd.ExecuteReader();
-        if(!reader.Read())return null;
-        var stored=reader.GetString(1).Split(':');
-        if (stored.Length != 2) return null;
-        var hash=Rfc2898DeriveBytes.Pbkdf2(password,Convert.FromBase64String(stored[0]),100000,HashAlgorithmName.SHA256,32);
-        return CryptographicOperations.FixedTimeEquals(hash,Convert.FromBase64String(stored[1]))?reader.GetString(0):null;
     }
     public string Session(string id)
     {
@@ -146,8 +122,8 @@ public sealed class RankingStore : IDisposable
             if (Convert.ToInt32(taken.ExecuteScalar()) == 0) break;
             displayName = name + " " + suffix++;
         }
-        Execute(db, transaction, "INSERT INTO RankingUsers(Id,Name,Password,Photo,City,Xp,Created) VALUES(@p0,@p1,@p2,'','CABA',@p3,@p4)",
-            id, displayName, "external", Math.Max(0, initialXp), DateTime.UtcNow.ToString("O"));
+        Execute(db, transaction, "INSERT INTO RankingUsers(Id,Name,Photo,City,Xp,Created) VALUES(@p0,@p1,'','CABA',@p2,@p3)",
+            id, displayName, Math.Max(0, initialXp), DateTime.UtcNow.ToString("O"));
         Execute(db, transaction, "INSERT INTO AuthProfiles VALUES(@p0,@p1)", email, id);
         transaction.Commit();
         return id;
