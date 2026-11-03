@@ -3,7 +3,7 @@ using EcoQuest.Logica.Interfaces;
 using EcoQuestAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.EntityFrameworkCore;
+using MySql.Data.MySqlClient;
 
 namespace EcoQuestAPI.Controllers;
 
@@ -24,7 +24,7 @@ public sealed class AuthController(IAuthService authService, RankingStore rankin
             var id = ranking.LinkAccount(usuario.Email, usuario.Nombre, usuario.Experiencia);
             return Ok(new { mensaje = "Cuenta creada correctamente.", token = ranking.Session(id), profile = ranking.Profile(id) });
         }
-        catch (DbUpdateException)
+        catch (MySqlException exception) when (exception.Number == 1062)
         {
             return Conflict(new { error = "No se pudo crear la cuenta. Revisá si ese email ya está registrado." });
         }

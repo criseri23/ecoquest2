@@ -1,6 +1,4 @@
-using EcoQuest.Datos.Context;
 using EcoQuest.Datos.Repositories;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,17 +11,9 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("EcoQuestDb")
-            ?? "Data Source=ecoquest.db";
+            ?? throw new InvalidOperationException("Falta configurar la conexión a MySQL.");
 
-        services.AddDbContext<EcoQuestDbContext>(options =>
-        {
-            if (configuration["Database:Provider"] == "MySQL")
-                options.UseMySQL(connectionString);
-            else
-                options.UseSqlite(connectionString);
-        });
-
-        services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+        services.AddScoped<IUsuarioRepository>(_ => new UsuarioRepository(connectionString));
         services.AddSingleton<IRecyclingPointRepository, OfficialRecyclingPointRepository>();
 
         return services;

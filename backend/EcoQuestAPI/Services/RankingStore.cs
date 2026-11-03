@@ -1,7 +1,6 @@
 using EcoQuest.Logica.Services;
 using System.Data.Common;
 using Microsoft.Data.Sqlite;
-using MySql.Data.MySqlClient;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -9,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace EcoQuestAPI.Services;
 
-public sealed class RankingStore
+public sealed class RankingStore : IDisposable
 {
     public sealed record PendingScan(
         string Id,
@@ -33,33 +32,14 @@ public sealed class RankingStore
         IReadOnlyList<RecycledItem> Items,
         string RecycledAt);
 
-    private readonly string connectionString;
-    private readonly bool useMySql;
+    private const string ConnectionString = "Data Source=EcoQuestRanking;Mode=Memory;Cache=Shared";
+    private readonly SqliteConnection databaseLifetime;
     private readonly RewardRules rules;
-    public RankingStore(IConfiguration config, IWebHostEnvironment env, RewardRules rules)
+    public RankingStore(RewardRules rules)
     {
         this.rules = rules;
-        useMySql = config["Database:Provider"] == "MySQL";
-        if (useMySql)
-        {
-            connectionString = config.GetConnectionString("EcoQuestDb")
-                ?? throw new InvalidOperationException("Falta configurar la conexión MySQL de EcoQuest.");
-        }
-        else
-        {
-            var path = config["Ranking:DatabasePath"] ?? Path.Combine(env.ContentRootPath, "ranking.db");
-            connectionString = new SqliteConnectionStringBuilder { DataSource=path, DefaultTimeout=15 }.ToString();
-        }
-
-        using var db=Open();
-        if (useMySql)
-        {
-            foreach (var statement in MySqlSchema)
-                Execute(db, statement);
-        }
-        else
-        {
-            Execute(db,"""
+        databaseLifetime = Open();
+        Execute(databaseLifetime,"""
             PRAGMA journal_mode=WAL;
             CREATE TABLE IF NOT EXISTS RankingUsers(Id TEXT PRIMARY KEY, Name TEXT NOT NULL COLLATE NOCASE UNIQUE,
                 Password TEXT NOT NULL, Photo TEXT NOT NULL DEFAULT '', City TEXT NOT NULL DEFAULT 'CABA', Xp INTEGER NOT NULL DEFAULT 0,
@@ -77,24 +57,13 @@ public sealed class RankingStore
             CREATE TABLE IF NOT EXISTS RankingDays(UserId TEXT NOT NULL, Day TEXT NOT NULL, Visited INTEGER NOT NULL DEFAULT 0, Challenge INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(UserId, Day));
             CREATE TABLE IF NOT EXISTS RankingRewards(UserId TEXT NOT NULL, Mission TEXT NOT NULL, PRIMARY KEY(UserId,Mission));
             """);
-        }
     }
-    private static readonly string[] MySqlSchema =
-    [
-        "CREATE TABLE IF NOT EXISTS RankingUsers (Id VARCHAR(64) NOT NULL PRIMARY KEY, Name VARCHAR(255) NOT NULL, Password VARCHAR(255) NOT NULL, Photo LONGTEXT NOT NULL, City VARCHAR(64) NOT NULL DEFAULT 'CABA', Xp INT NOT NULL DEFAULT 0, Validated INT NOT NULL DEFAULT 0, Created VARCHAR(40) NOT NULL, UNIQUE KEY UX_RankingUsers_Name (Name), KEY RankingScore (City, Xp, Created, Id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-        "CREATE TABLE IF NOT EXISTS RankingSessions (Token VARCHAR(64) NOT NULL PRIMARY KEY, UserId VARCHAR(64) NOT NULL, Expires VARCHAR(40) NOT NULL, KEY RankingSessions_UserId (UserId)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-        "CREATE TABLE IF NOT EXISTS RankingScans (Id VARCHAR(64) NOT NULL PRIMARY KEY, UserId VARCHAR(64) NOT NULL, Points INT NOT NULL, Container VARCHAR(255) NOT NULL, Used TINYINT NOT NULL DEFAULT 0, KEY RankingScans_UserId_Used (UserId, Used)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-        "CREATE TABLE IF NOT EXISTS RankingScanDetails (ScanId VARCHAR(64) NOT NULL PRIMARY KEY, Title VARCHAR(255) NOT NULL, Badge VARCHAR(100) NOT NULL, `Text` LONGTEXT NOT NULL, CanUseGreenContainer TINYINT NOT NULL, WasteType VARCHAR(255) NOT NULL, Confidence VARCHAR(32) NOT NULL, ScannedAt VARCHAR(40) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-        "CREATE TABLE IF NOT EXISTS RankingHistory (Id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, UserId VARCHAR(64) NOT NULL, PointId VARCHAR(255) NOT NULL, PointName VARCHAR(255) NOT NULL, Points INT NOT NULL, Items LONGTEXT NOT NULL, RecycledAt VARCHAR(40) NOT NULL, KEY RankingHistoryUser (UserId, Id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-        "CREATE TABLE IF NOT EXISTS AuthProfiles (Email VARCHAR(254) NOT NULL PRIMARY KEY, RankingUserId VARCHAR(64) NOT NULL UNIQUE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-        "CREATE TABLE IF NOT EXISTS RankingDays (UserId VARCHAR(64) NOT NULL, Day VARCHAR(10) NOT NULL, Visited TINYINT NOT NULL DEFAULT 0, Challenge TINYINT NOT NULL DEFAULT 0, PRIMARY KEY (UserId, Day)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-        "CREATE TABLE IF NOT EXISTS RankingRewards (UserId VARCHAR(64) NOT NULL, Mission VARCHAR(100) NOT NULL, PRIMARY KEY (UserId, Mission)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-        "CREATE TABLE IF NOT EXISTS EcoQuestSqliteImports (SourceName VARCHAR(40) NOT NULL, TableName VARCHAR(64) NOT NULL, ImportedAt VARCHAR(40) NOT NULL, PRIMARY KEY (SourceName, TableName)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-    ];
 
-    public DbConnection Open()
+    public void Dispose() => databaseLifetime.Dispose();
+
+    public SqliteConnection Open()
     {
-        DbConnection db = useMySql ? new MySqlConnection(connectionString) : new SqliteConnection(connectionString);
+        var db = new SqliteConnection(ConnectionString);
         db.Open();
         return db;
     }
@@ -124,69 +93,8 @@ public sealed class RankingStore
         return cmd.ExecuteNonQuery();
     }
 
-    public bool IsDuplicateName(DbException error) => useMySql
-        ? error is MySqlException mysqlError && mysqlError.Number == 1062
-        : error is SqliteException sqliteError && sqliteError.SqliteErrorCode == 19;
-
-    public void ImportLegacySqlite(string ecoQuestPath, string rankingPath)
-    {
-        if (!useMySql) return;
-        ImportSqliteFile("ecoquest", ecoQuestPath);
-        ImportSqliteFile("ranking", rankingPath);
-    }
-
-    private void ImportSqliteFile(string sourceName, string path)
-    {
-        if (!File.Exists(path)) return;
-        using var source = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = path, Mode = SqliteOpenMode.ReadOnly }.ToString());
-        source.Open();
-        using var target = Open();
-        using var tables = source.CreateCommand();
-        tables.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name";
-        using var tableReader = tables.ExecuteReader();
-        var tableNames = new List<string>();
-        while (tableReader.Read()) tableNames.Add(tableReader.GetString(0));
-        tableReader.Close();
-
-        foreach (var tableName in tableNames)
-        {
-            using var imported = Command(target, "SELECT COUNT(*) FROM EcoQuestSqliteImports WHERE SourceName=@p0 AND TableName=@p1", sourceName, tableName);
-            if (Convert.ToInt32(imported.ExecuteScalar()) > 0) continue;
-
-            using var sourceColumnsCommand = source.CreateCommand();
-            sourceColumnsCommand.CommandText = $"PRAGMA table_info(`{tableName.Replace("`", "``")}`)";
-            using var sourceColumnsReader = sourceColumnsCommand.ExecuteReader();
-            var sourceColumns = new List<string>();
-            while (sourceColumnsReader.Read()) sourceColumns.Add(sourceColumnsReader.GetString(1));
-            sourceColumnsReader.Close();
-
-            using var targetShape = Command(target, $"SELECT * FROM `{tableName.Replace("`", "``")}` LIMIT 0");
-            using var targetColumnsReader = targetShape.ExecuteReader();
-            var targetColumns = Enumerable.Range(0, targetColumnsReader.FieldCount).Select(targetColumnsReader.GetName).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            targetColumnsReader.Close();
-            var columns = sourceColumns.Where(targetColumns.Contains).ToArray();
-            if (columns.Length == 0) throw new InvalidOperationException($"La tabla {tableName} no tiene columnas compatibles para migrar.");
-
-            using var transaction = target.BeginTransaction();
-            using var rowsCommand = source.CreateCommand();
-            rowsCommand.CommandText = $"SELECT {string.Join(", ", columns.Select(column => $"`{column.Replace("`", "``")}`"))} FROM `{tableName.Replace("`", "``")}`";
-            using var rows = rowsCommand.ExecuteReader();
-            var parameterNames = Enumerable.Range(0, columns.Length).Select(i => "@p" + i).ToArray();
-            using var insert = Command(target, transaction,
-                $"INSERT IGNORE INTO `{tableName.Replace("`", "``")}` ({string.Join(", ", columns.Select(column => $"`{column.Replace("`", "``")}`"))}) VALUES ({string.Join(", ", parameterNames)})",
-                new object[columns.Length]);
-            var parameters = insert.Parameters.Cast<DbParameter>().ToArray();
-            while (rows.Read())
-            {
-                for (var i = 0; i < columns.Length; i++) parameters[i].Value = rows.IsDBNull(i) ? DBNull.Value : rows.GetValue(i);
-                insert.ExecuteNonQuery();
-            }
-            rows.Close();
-            Execute(target, transaction, "INSERT INTO EcoQuestSqliteImports(SourceName, TableName, ImportedAt) VALUES(@p0,@p1,@p2)",
-                sourceName, tableName, DateTimeOffset.UtcNow.ToString("O"));
-            transaction.Commit();
-        }
-    }
+    public bool IsDuplicateName(DbException error) =>
+        error is SqliteException sqliteError && sqliteError.SqliteErrorCode == 19;
     public static string Hash(string token)=>Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
     public string? Authenticate(string? header)
     {
@@ -402,9 +310,8 @@ public sealed class RankingStore
         return bonus;
     }
 
-    private string IgnoreInsert(string sql) => useMySql
-        ? sql.Replace("INSERT INTO", "INSERT IGNORE INTO", StringComparison.Ordinal)
-        : sql.Replace("INSERT INTO", "INSERT OR IGNORE INTO", StringComparison.Ordinal);
+    private static string IgnoreInsert(string sql) =>
+        sql.Replace("INSERT INTO", "INSERT OR IGNORE INTO", StringComparison.Ordinal);
 
     public object Visit(string user)
     {
