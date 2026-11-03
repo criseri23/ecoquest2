@@ -1,8 +1,30 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EcoQuest · Bienvenida a EcoQuest</title><link rel="stylesheet" href="../css/escanear.css?v=12"><link rel="stylesheet" href="../css/ecoquest-layout.css?v=4"><link rel="stylesheet" href="../css/auth.css"></head><body><main class="app-shell auth-shell"><header class="eco-header" aria-label="Tu progreso en EcoQuest">
-      <a class="eco-brand" href="inicio.html" aria-label="EcoQuest, inicio"><img src="../img/logoia-crop.png" alt="EcoQuest"></a>
-      <div class="eco-stats">
-        <span class="eco-stat" aria-label="Experiencia">🍃 <b data-total-xp>0</b> XP</span>
-        <span class="eco-stat">⭐ Nivel <b data-level>1</b></span>
-        <a class="eco-stat" href="calendario.html" title="Ver calendario y racha">🔥 Racha <b data-streak>0</b></a>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#184b35">
+  <title>EcoQuest · Elegí cómo entrar</title>
+  <link rel="stylesheet" href="../css/escanear.css?v=12">
+  <link rel="stylesheet" href="../css/welcome.css?v=1">
+</head>
+<body>
+  <main class="app-shell welcome-shell">
+    <section class="welcome-card choice-card" aria-labelledby="choiceTitle">
+      <img class="welcome-logo" src="../img/logoia-crop.png" alt="EcoQuest">
+      <div class="welcome-art" aria-hidden="true"><img src="../img/carpincho-crop.png" alt=""></div>
+      <p class="welcome-eyebrow">TU AVENTURA EMPIEZA ACÁ</p>
+      <h1 id="choiceTitle">¿Cómo querés entrar?</h1>
+      <p class="welcome-copy">Con una cuenta podés guardar tu progreso y aparecer en el ranking.</p>
+      <div class="choice-actions">
+        <button id="btnLogin" class="welcome-primary" type="button">Iniciar sesión</button>
+        <button id="btnRegistro" class="welcome-option" type="button">Crear una cuenta</button>
+        <button id="btnGuest" class="welcome-guest" type="button">Probar como invitada · sin guardar progreso</button>
       </div>
-    </header><section class="auth-content" aria-label="Bienvenida a EcoQuest"><h1 class="sr-only">Bienvenida a EcoQuest</h1><svg class="auth-hero" viewBox="0 142 1080 910" aria-hidden="true"><image href="../img/elegir.png" width="1080" height="1920"/></svg><div class="auth-actions"><button id="btnLogin">Iniciar sesión</button><button id="btnRegistro">Registrarme</button><a href="inicio.html">Continuar como invitado</a></div></section></main><script src="../js/ecoquest-account.js?v=3"></script><script src="../js/ecoquest-rules.js"></script><script src="../js/ecoquest-state.js?v=6"></script><script src="../js/ecoquest-activity.js"></script><script src="../js/elegir.js?v=2"></script></body></html>
+      <p class="welcome-footnote">Como invitada podés recorrer la app. El XP y los datos empiezan de cero y no se guardan.</p>
+    </section>
+  </main>
+  <script src="../js/ecoquest-account.js?v=5"></script>
+  <script src="../js/elegir.js?v=3"></script>
+</body>
+</html>

@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
   <link rel="stylesheet" href="../css/escanear.css?v=12">
-  <link rel="stylesheet" href="../css/mapa.css?v=1">
+  <link rel="stylesheet" href="../css/mapa.css?v=4">
 <link rel="stylesheet" href="../css/ecoquest-layout.css?v=4">
 </head>
 <body>
@@ -31,6 +31,7 @@
         <button id="locateButton" class="locate-button" type="button" aria-label="Mostrar mi ubicación">
           <span id="locateLabel">Mi ubicación</span>
         </button>
+        <button id="manualLocationButton" class="locate-button" type="button">Elegir en el mapa</button>
         <button id="nearestButton" class="locate-button" type="button">Buscar cercano</button>
       </div>
 
@@ -43,7 +44,7 @@
         <button id="expandMapButton" class="expand-map-button" type="button">Expandir mapa</button>
       </div>
 
-      <div class="map-legend" aria-label="Referencias del mapa"><span><i class="legend-green"></i>Reciclables</span><span><i class="legend-black"></i>Basura común</span><span><i class="legend-special">★</i>Punto Verde</span></div>
+      <div class="map-legend" aria-label="Referencias del mapa"><span><i class="legend-green" aria-hidden="true">♻</i>Contenedor verde en la calle</span><span><i class="legend-black" aria-hidden="true">▣</i>Basura común</span><span><i class="legend-special" aria-hidden="true">★</i>Punto Verde especial</span></div>
       <article class="map-info-card" aria-live="polite">
         <div class="map-card-icon" aria-hidden="true">
           <img src="../img/mapa-crop.png" alt="">
@@ -103,10 +104,10 @@
   </main>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <script src="../js/ecoquest-account.js?v=3"></script>
+  <script src="../js/ecoquest-account.js?v=5"></script>
 <script src="../js/ecoquest-rules.js?v=1"></script>
-<script src="../js/ecoquest-state.js?v=6"></script>
-<script src="../js/ecoquest-activity.js?v=1"></script>
-  <script src="../js/mapa.js?v=32"></script>
+<script src="../js/ecoquest-state.js?v=8"></script>
+<script src="../js/ecoquest-activity.js?v=2"></script>
+  <script src="../js/mapa.js?v=40"></script>
 </body>
 </html>

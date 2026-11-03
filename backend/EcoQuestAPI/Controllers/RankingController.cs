@@ -2,7 +2,7 @@ using EcoQuestAPI.Services;
 using EcoQuest.Datos.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Data.Sqlite;
+using System.Data.Common;
 
 namespace EcoQuestAPI.Controllers;
 [ApiController, Route("api/ranking")]
@@ -16,7 +16,7 @@ public sealed class RankingController(RankingStore store,IRecyclingPointReposito
     public IActionResult Register(Account a) {
         try {var id=store.Register(a.Name??"",a.Password??"",a.Photo??"",a.City);return Ok(new {token=store.Session(id),profile=store.Profile(id)});}
         catch(ArgumentException e){return BadRequest(new {error=e.Message});}
-        catch(SqliteException e)when(e.SqliteErrorCode==19){return Conflict(new {error="Ese nombre de usuario ya está ocupado."});}
+        catch(DbException e) when(store.IsDuplicateName(e)){return Conflict(new {error="Ese nombre de usuario ya está ocupado."});}
     }
     [HttpPost("login"),EnableRateLimiting("accounts")]
     public IActionResult Login(Account a) {
@@ -25,6 +25,7 @@ public sealed class RankingController(RankingStore store,IRecyclingPointReposito
     }
     [HttpPost("activity")] public IActionResult Visit() => UserId() is {} id ? Ok(store.Visit(id)) : Unauthorized();
     [HttpGet("me")]public IActionResult Me()=>UserId() is {} id?Ok(store.Profile(id)):Unauthorized();
+    [HttpGet("progress")] public IActionResult Progress() => UserId() is {} id ? Ok(store.Progress(id)) : Unauthorized();
     [HttpPost("logout")]public IActionResult Logout() {using var db=store.Open();var h=Request.Headers.Authorization.ToString();if(h.StartsWith("Bearer "))RankingStore.Execute(db,"DELETE FROM RankingSessions WHERE Token=@p0",RankingStore.Hash(h[7..]));return NoContent();}
     [HttpPut("photo")]public IActionResult SetPhoto([FromBody]string photo) {
         if(UserId() is not {} id)return Unauthorized();
@@ -42,6 +43,7 @@ public sealed class RankingController(RankingStore store,IRecyclingPointReposito
         var rad=Math.PI/180;var a=Math.Pow(Math.Sin((point.Lat-v.Lat)*rad/2),2)+Math.Cos(v.Lat*rad)*Math.Cos(point.Lat*rad)*Math.Pow(Math.Sin((point.Lng-v.Lng)*rad/2),2);
         var distance=6371000*2*Math.Asin(Math.Sqrt(Math.Clamp(a,0,1)));
         if(distance>150)return BadRequest(new {error="Acercate al contenedor para validar los residuos."});
-        var awarded=store.Validate(id,v.ScanIds,point.Accepts);return Ok(new {awardedPoints=awarded,profile=store.Profile(id)});
+        var awarded = store.Validate(id, v.ScanIds, point.Id, point.Name, point.Accepts);
+        return Ok(new { awardedPoints = awarded, profile = store.Profile(id) });
     }
 }

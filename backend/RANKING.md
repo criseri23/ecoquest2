@@ -1,20 +1,24 @@
-# Ranking de CABA
+# Datos y ranking de EcoQuest
 
-El ranking usa una base SQLite propia (`EcoQuestAPI/ranking.db`, excluida de Git). No modifica las tablas anteriores. Se puede cambiar la ruta con `Ranking:DatabasePath`.
+EcoQuest usa la base MySQL local `ecoquest` de XAMPP para las cuentas, el ranking, el progreso y los escaneos asociados a cuentas. El frontend y la API se sirven con `dotnet run --project backend/EcoQuestAPI` en `http://localhost:5228`.
 
-- Abrir `/pages/ranking.html`, crear perfil con nombre, contraseña, foto opcional y declaración de participación en CABA. Nombre y foto son públicos.
-- Registro e ingreso generan sesiones de 30 días; contraseñas con PBKDF2 y sal aleatoria, tokens guardados como hashes en servidor. Registro e ingreso tienen límite de solicitudes por IP.
-- Top 10 / Top 100 ordenados por XP descendente, con desempate por fecha de creación e ID. Podio vacío si faltan participantes. Actualización cada 30 segundos y al volver a la ventana.
-- La foto se recorta en el navegador a JPEG de 192 px; puede cambiarse desde Ranking. El servidor limita formato y tamaño.
-- Cada usuario tiene almacenamiento local separado. El XP de invitado no se importa a la cuenta: el ranking acepta únicamente escaneos registrados por la API con sesión iniciada y validados cerca de un contenedor del catálogo de CABA (150 m, precisión informada de hasta 150 m).
-- La API calcula puntos y bonus de logros, consumiendo cada escaneo una sola vez en una transacción. No hay endpoint para enviar un total de XP arbitrario.
+## Ver la base
 
-## Ejecución y límites
+1. Iniciá Apache y MySQL en XAMPP.
+2. Abrí `http://localhost/phpmyadmin/` y seleccioná `ecoquest`.
+3. `Usuarios` contiene las cuentas de registro; `RankingUsers`, `RankingScans`, `RankingScanDetails`, `RankingHistory`, `RankingDays` y `RankingRewards` contienen el perfil y su progreso.
 
-`dotnet run --project backend/EcoQuestAPI` sirve frontend y API. Todas las personas deben usar la misma instancia/URL para compartir ranking. Dos copias locales del proyecto tienen bases independientes. Para acceso remoto se requiere alojar esta instancia con HTTPS y almacenamiento persistente; respaldar la base y no subirla a Git.
+En el primer inicio, EcoQuest copia los datos existentes de `EcoQuestAPI/ecoquest.db` y `EcoQuestAPI/ranking.db` a MySQL. La tabla `EcoQuestSqliteImports` registra qué tablas ya se importaron, así no se vuelven a copiar cada vez que arranca. Los dos archivos SQLite originales se conservan sin cambios como respaldo.
 
-La ubicación la informa el navegador: no es un sistema antifraude de GPS. No se agregó recuperación de contraseñas ni correo electrónico. SQLite y el Top 100 están indexados, pero no se realizó una prueba de carga de miles de usuarios.
+## Cómo se guarda el progreso
 
-## Verificación realizada
+- Las cuentas registradas, sesiones, XP, misiones, actividad diaria, escaneos pendientes e historial se leen y escriben en MySQL.
+- El modo invitado inicia con 0 XP; no crea un perfil de ranking ni guarda escaneos, rachas o progreso en MySQL o en el navegador.
+- El servidor calcula los puntos al validar escaneos cerca de un contenedor del catálogo de CABA. Una validación no puede repetirse para reclamar XP de nuevo.
+- Los nombres y las fotos del ranking son visibles en el ranking. Las contraseñas se guardan con hash; las sesiones guardan tokens con hash.
 
-Base aislada de prueba: registro por interfaz, ingreso y contraseña incorrecta, nombres duplicados, fotos, rechazo de otra ciudad, orden del podio, tamaños móviles, autenticación requerida, distancia al contenedor, propiedad del escaneo y repetición de validaciones. Cuatro escaneos de 10 XP producen 90 XP (40 + 50 de logro) una sola vez. Los datos de prueba no se copian a la base de uso normal.
+## Ejecución local
+
+Mantené MySQL de XAMPP encendido antes de iniciar la API. La configuración local usa el usuario `root` sin contraseña, como viene XAMPP por defecto; si cambiaste esa contraseña, actualizá `ConnectionStrings:EcoQuestDb` en `EcoQuestAPI/appsettings.json`.
+
+Para ver los datos en phpMyAdmin, elegí la base `ecoquest`; la base `ecoquest_consulta_20261029` es solo una copia de consulta anterior y no se sincroniza.

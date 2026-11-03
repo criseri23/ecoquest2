@@ -38,7 +38,6 @@ window.EcoQuestReady = window.EcoQuestReady.then(() => {
     busy = true;
     try {
       if (window.EcoQuestAccount.profile) await window.EcoQuestAccount.refresh();
-      else { const progress = store.readProgress(), bonus = Activity.record(progress); if (bonus) { progress.totalPoints += bonus; store.writeProgress(progress); } }
       document.querySelector('#activityError')?.remove();
     } catch {
       if (!document.querySelector('#activityError')) { const node = document.createElement('p'); node.id='activityError'; node.textContent='No se pudo sincronizar la racha. Volvé a intentar con conexión.'; document.body.append(node); }

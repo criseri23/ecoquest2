@@ -14,7 +14,7 @@ window.EcoQuestReady = window.EcoQuestReady.then(() => {
       this.canUseGreenContainer = result?.canUseGreenContainer ?? this.container === "Contenedor verde";
       this.wasteType = result?.wasteType || this.badge;
       this.confidence = result?.confidence || "media";
-      this.points = this.canBeStoredForRecycling ? window.EcoQuestRules.recyclingXp : 0;
+      this.points = window.EcoQuestAccount?.profile && this.canBeStoredForRecycling ? window.EcoQuestRules.recyclingXp : 0;
     }
 
     get canBeStoredForRecycling() {
@@ -72,8 +72,29 @@ window.EcoQuestReady = window.EcoQuestReady.then(() => {
       return Array.isArray(storedPending) ? storedPending : [];
     }
 
+    syncAccountProgress(serverProgress) {
+      if (!window.EcoQuestAccount?.profile) return;
+
+      if (Array.isArray(serverProgress.pendingScans)) {
+        this.writeJson(this.pendingKey, serverProgress.pendingScans);
+      }
+
+      if (Array.isArray(serverProgress.history)) {
+        const progress = this.readProgress();
+        const entries = new Map();
+        for (const entry of [...serverProgress.history, ...progress.history]) {
+          entries.set(`${entry.pointId}:${entry.recycledAt}`, entry);
+        }
+        progress.history = [...entries.values()].sort((a, b) => b.recycledAt.localeCompare(a.recycledAt));
+        this.writeProgress(progress);
+      }
+    }
+
     addPendingScan(result) {
       const scanResult = new EcoQuestScanResult(result);
+      if (!window.EcoQuestAccount?.profile) {
+        return { added: false, pendingCount: 0, scanResult };
+      }
       const progress = this.readProgress();
 
       progress.scans += 1;
@@ -168,6 +189,7 @@ window.EcoQuestReady = window.EcoQuestReady.then(() => {
     }
 
     readJson(key) {
+      if (window.EcoQuestAccount?.isGuest) return null;
       try {
         return JSON.parse(this.storage.getItem(key));
       } catch {
@@ -176,6 +198,7 @@ window.EcoQuestReady = window.EcoQuestReady.then(() => {
     }
 
     writeJson(key, value) {
+      if (window.EcoQuestAccount?.isGuest) return true;
       try {
         this.storage.setItem(key, JSON.stringify(value));
         return true;

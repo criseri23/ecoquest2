@@ -18,12 +18,25 @@ window.EcoQuestReady.then(() => {
     document.querySelector("#rankingScans").textContent = progress.scans;
     document.querySelector("#rankingSuccess").textContent = progress.successfulScans;
     document.querySelector("#rankingJoin").hidden = Boolean(account.profile);
+    more.hidden = !account.profile;
     document.querySelector("#rankingPhoto").hidden = !account.profile;
     document.querySelector("#rankingLogout").hidden = !account.profile;
   }
   async function refresh() {
     if (loading) return; loading = true;
     try {
+      renderProgress();
+      if (!account.profile) {
+        document.querySelector("#rankingEntries").replaceChildren();
+        const emptyPodium = document.querySelector("#rankingWinners"); emptyPodium.replaceChildren();
+        for (let rank = 1; rank <= 3; rank++) {
+          const slot = text("div", "", `podium-person podium-person-${rank}`);
+          slot.append(text("span", "", "podium-vacancy"), text("small", "Iniciá sesión"));
+          emptyPodium.append(slot);
+        }
+        status.textContent = "Modo invitada: no tenés un perfil en el ranking. Iniciá sesión para consultar y participar.";
+        return;
+      }
       await account.refresh(); renderProgress();
       const data = await account.request(`/api/ranking?limit=${expanded ? 100 : 10}`);
       const entries = document.querySelector("#rankingEntries"); entries.replaceChildren();
@@ -41,7 +54,9 @@ window.EcoQuestReady.then(() => {
         else { slot.append(text("span", "", "podium-vacancy"), text("small", "Puesto libre")); }
         podium.append(slot);
       }
-      status.textContent = data.users.length ? "CABA · Ordenado por XP validado. Se actualiza automáticamente." : "El podio está libre. Creá tu perfil para participar en CABA.";
+      status.textContent = account.profile
+        ? (data.users.length ? "CABA · Ordenado por XP validado. Se actualiza automáticamente." : "El podio está libre. Creá tu perfil para participar en CABA.")
+        : "Modo invitada: no tenés un perfil en el ranking. Iniciá sesión para consultar y participar.";
     } catch (error) { status.textContent = error.message; }
     finally { loading = false; }
   }

@@ -10,7 +10,7 @@ const progressStore = window.EcoQuestStorage;
 let isScanning = false;
 let isCameraReady = false;
 const CAMERA_READY_TIMEOUT_MS = 12000;
-const ANALYSIS_TIMEOUT_MS = 75000;
+const ANALYSIS_TIMEOUT_MS = 36000;
 const CAPTURE_MAX_SIDE = 640;
 const CAPTURE_JPEG_QUALITY = 0.72;
 
@@ -214,7 +214,7 @@ function renderResult(result) {
   const safeResult = {
     title: result.title || "Residuo no identificado",
     badge: result.badge || "Incierto",
-    points: result.points || "+0",
+    points: window.EcoQuestAccount?.profile ? (result.points || "+0") : "+0 XP",
     container: result.container || "No aplica",
     text: result.text || "No pude analizar la imagen. Proba otra foto con mejor luz.",
     totalPoints: Number.isFinite(result.totalPoints) ? result.totalPoints : currentProgress.totalPoints,
@@ -222,11 +222,13 @@ function renderResult(result) {
     pendingCount: Number(result.pendingCount) || progressStore.readPendingScans().length,
   };
   const canOpenMap = safeResult.container !== "No aplica" && safeResult.badge !== "No residuo";
-  const pendingStatus = safeResult.pendingAdded
-    ? `Pendientes ${safeResult.pendingCount}`
-    : canOpenMap
-      ? "Verificar en mapa"
-      : "Sin puntos";
+  const pendingStatus = !window.EcoQuestAccount?.profile
+    ? "Invitada · el progreso no se guarda"
+    : safeResult.pendingAdded
+      ? `Pendientes ${safeResult.pendingCount}`
+      : canOpenMap
+        ? "Verificar en mapa"
+        : "Sin puntos";
   const mapAction = canOpenMap
     ? `<a class="map-action" href="mapa.html">Abrir mapa</a>`
     : "";

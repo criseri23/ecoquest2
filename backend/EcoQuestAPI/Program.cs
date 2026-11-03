@@ -7,7 +7,8 @@ using EcoQuest.Logica;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
-if (builder.Configuration["Database:Provider"] != "MySQL")
+var useMySql = builder.Configuration["Database:Provider"] == "MySQL";
+if (!useMySql)
 {
     var connection = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(
         builder.Configuration.GetConnectionString("EcoQuestDb") ?? "Data Source=ecoquest.db");
@@ -41,12 +42,24 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// SQLite funciona en esta PC; MySQL se activa desde la configuración.
+// Prepara MySQL y copia los archivos SQLite actuales una sola vez al iniciar.
 using (var scope = app.Services.CreateScope())
 {
     var database = scope.ServiceProvider.GetRequiredService<EcoQuest.Datos.Context.EcoQuestDbContext>();
-    if (builder.Configuration["Database:Provider"] != "MySQL")
+    if (useMySql)
+    {
+        // XAMPP usa MariaDB 10.4; su GET_LOCK no acepta el timeout -1 del migrador de EF 10.
+        // La base nueva se crea desde el modelo actual sin tocar ninguna tabla existente.
         database.Database.EnsureCreated();
+        var rankingStore = scope.ServiceProvider.GetRequiredService<RankingStore>();
+        rankingStore.ImportLegacySqlite(
+            Path.Combine(builder.Environment.ContentRootPath, "ecoquest.db"),
+            Path.Combine(builder.Environment.ContentRootPath, "ranking.db"));
+    }
+    else
+    {
+        database.Database.EnsureCreated();
+    }
 }
 
 

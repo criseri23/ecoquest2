@@ -1,6 +1,5 @@
 using EcoQuest.Logica.Services;
 using EcoQuestAPI.Services;
-using System.Text.RegularExpressions;
 using EcoQuest.Logica.DTOs;
 using EcoQuest.Logica.Exceptions;
 using EcoQuest.Logica.Interfaces;
@@ -35,8 +34,11 @@ public sealed class WasteAnalysisController : ControllerBase
             result = result with { Points = result.IsWaste && result.Container != "No aplica" ? "+" + rules.RecyclingXp : "+0" };
             var user = ranking.Authenticate(Request.Headers.Authorization.ToString());
             if(user is not null && result.IsWaste && result.Container != "No aplica") {
-                int.TryParse(Regex.Match(result.Points, @"\d+").Value,out var points);
-                result=result with { ScanId=ranking.SaveScan(user,points,result.Container) };
+                result=result with
+                {
+                    ScanId = ranking.SaveScan(user, result.Container, result.Title, result.Badge,
+                        result.Text, result.CanUseGreenContainer, result.WasteType, result.Confidence)
+                };
             }
             return Ok(result);
         }

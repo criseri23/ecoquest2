@@ -1,14 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>EcoQuest - Mascota</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>EcoQuest · Mascota</title>
   <link rel="stylesheet" href="../css/escanear.css?v=12">
-<link rel="stylesheet" href="../css/ecoquest-layout.css?v=4">
+  <link rel="stylesheet" href="../css/ecoquest-layout.css?v=4">
+  <link rel="stylesheet" href="../css/pet.css?v=1">
 </head>
 <body>
-  <main class="app-shell">
+  <main class="app-shell pet-shell">
     <header class="eco-header" aria-label="Tu progreso en EcoQuest">
       <a class="eco-brand" href="inicio.html" aria-label="EcoQuest, inicio"><img src="../img/logoia-crop.png" alt="EcoQuest"></a>
       <div class="eco-stats">
@@ -18,44 +19,35 @@
       </div>
     </header>
 
-
-    <section class="scan-panel" aria-label="Mascota">
-      <article class="page-panel">
-        <h1>Mascota</h1>
-        <p>Cuida tu companero EcoQuest, sube su energia y desbloquea accesorios con tus buenas acciones.</p>
-      </article>
+    <section class="pet-page" aria-labelledby="petTitle">
+      <p class="pet-eyebrow">TU COMPAÑERO ECOQUEST</p>
+      <h1 id="petTitle">La mascota</h1>
+      <div class="pet-stage" aria-label="Un carpincho camina por un sendero">
+        <span class="pet-cloud pet-cloud-one" aria-hidden="true"></span>
+        <span class="pet-cloud pet-cloud-two" aria-hidden="true"></span>
+        <span class="pet-sun" aria-hidden="true">✦</span>
+        <div class="pet-path" aria-hidden="true"></div>
+        <img class="pet-walker" src="../img/carpinchos/idle-1.png" alt="Carpincho EcoQuest">
+      </div>
+      <div class="pet-note">
+        <span class="pet-badge">🌱 En preparación</span>
+        <h2>¡Próximamente!</h2>
+        <p>Tu carpincho ya está dando una vuelta. Pronto vas a poder cuidarlo y desbloquear accesorios con tus logros.</p>
+      </div>
     </section>
 
-    <nav class="bottom-nav" aria-label="Navegacion principal">
-      <a class="nav-item" href="inicio.html">
-        <img src="../img/inicio-crop.png" alt="" aria-hidden="true">
-        <span>Inicio</span>
-      </a>
-      <a class="nav-item" href="misiones.html">
-        <img src="../img/tareas-crop.png" alt="" aria-hidden="true">
-        <span>Misiones</span>
-      </a>
-      <a class="nav-item" href="ranking.html">
-        <img src="../img/ranking-crop.png" alt="" aria-hidden="true">
-        <span>Ranking</span>
-      </a>
-      <a class="nav-item" href="mapa.html">
-        <img src="../img/mapa-crop.png" alt="" aria-hidden="true">
-        <span>Mapa</span>
-      </a>
-      <a class="nav-item active" href="mascota.html">
-        <img src="../img/carpincho-crop.png" alt="" aria-hidden="true">
-        <span>Mascota</span>
-      </a>
-      <a class="nav-item" href="config.html">
-        <img src="../img/ajustes-crop.png" alt="" aria-hidden="true">
-        <span>Config</span>
-      </a>
+    <nav class="bottom-nav" aria-label="Navegación principal">
+      <a class="nav-item" href="inicio.html"><img src="../img/inicio-crop.png" alt="" aria-hidden="true"><span>Inicio</span></a>
+      <a class="nav-item" href="misiones.html"><img src="../img/tareas-crop.png" alt="" aria-hidden="true"><span>Misiones</span></a>
+      <a class="nav-item" href="ranking.html"><img src="../img/ranking-crop.png" alt="" aria-hidden="true"><span>Ranking</span></a>
+      <a class="nav-item" href="mapa.html"><img src="../img/mapa-crop.png" alt="" aria-hidden="true"><span>Mapa</span></a>
+      <a class="nav-item active" href="mascota.html" aria-current="page"><img src="../img/carpincho-crop.png" alt="" aria-hidden="true"><span>Mascota</span></a>
+      <a class="nav-item" href="config.html"><img src="../img/ajustes-crop.png" alt="" aria-hidden="true"><span>Config</span></a>
     </nav>
   </main>
-<script src="../js/ecoquest-account.js?v=3"></script>
-<script src="../js/ecoquest-rules.js?v=1"></script>
-<script src="../js/ecoquest-state.js?v=6"></script>
-<script src="../js/ecoquest-activity.js?v=1"></script>
+  <script src="../js/ecoquest-account.js?v=5"></script>
+  <script src="../js/ecoquest-rules.js?v=1"></script>
+  <script src="../js/ecoquest-state.js?v=8"></script>
+  <script src="../js/ecoquest-activity.js?v=2"></script>
 </body>
 </html>

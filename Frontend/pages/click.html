@@ -1,27 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
-    <title>EcoQuest</title>
-
-    <link rel="stylesheet" href="../css/escanear.css?v=12">
-<link rel="stylesheet" href="../css/auth.css"></head>
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#184b35">
+  <title>EcoQuest · Bienvenida</title>
+  <link rel="stylesheet" href="../css/escanear.css?v=12">
+  <link rel="stylesheet" href="../css/welcome.css?v=1">
+</head>
 <body>
-
-    <main class="app-shell" id="clickScreen"><button id="startButton" aria-label="Empezar EcoQuest">
-
-        <img
-            src="../img/clickimagen.png"
-            alt="EcoQuest"
-            class="click-image"
-        >
-
-    </button></main>
-
-    <script src="../js/ecoquest-account.js?v=3"></script><script src="../js/click.js?v=2"></script>
-
+  <main class="app-shell welcome-shell">
+    <section class="welcome-card" aria-labelledby="welcomeTitle">
+      <img class="welcome-logo" src="../img/logoia-crop.png" alt="EcoQuest">
+      <div class="welcome-art" aria-hidden="true">
+        <span class="welcome-leaf welcome-leaf-one">✦</span>
+        <span class="welcome-leaf welcome-leaf-two">✿</span>
+        <img src="../img/carpincho-crop.png" alt="">
+      </div>
+      <p class="welcome-eyebrow">PEQUEÑAS ACCIONES, UN GRAN CAMBIO</p>
+      <h1 id="welcomeTitle">¡Hola, ecoexploradora!</h1>
+      <p class="welcome-copy">Reciclá, descubrí puntos verdes y avanzá a tu ritmo.</p>
+      <button id="startButton" class="welcome-primary" type="button">Empezar <span aria-hidden="true">→</span></button>
+      <p class="welcome-footnote">Elegí después si querés usar una cuenta o entrar como invitada.</p>
+    </section>
+  </main>
+  <script src="../js/ecoquest-account.js?v=5"></script>
+  <script src="../js/click.js?v=3"></script>
 </body>
 </html>

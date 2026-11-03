@@ -8,6 +8,10 @@ public interface IUsuarioRepository
         string email,
         CancellationToken cancellationToken);
 
+    Task<List<Usuario>> ObtenerPorNombreAsync(
+        string nombre,
+        CancellationToken cancellationToken);
+
     Task AgregarAsync(
         Usuario usuario,
         CancellationToken cancellationToken);

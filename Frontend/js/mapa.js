@@ -154,6 +154,7 @@ class EcoQuestMapController {
     this.pointsLoaded = false;
     this.isMapExpanded = false;
     this.isLocating = false;
+    this.isChoosingManualLocation = false;
     this.findNearestAfterLocation = false;
     this.usingFallback = false;
     this.elements = {
@@ -163,6 +164,7 @@ class EcoQuestMapController {
       pendingCount: document.querySelector("#pendingCount"),
       locateButton: document.querySelector("#locateButton"),
       locateLabel: document.querySelector("#locateLabel"),
+      manualLocationButton: document.querySelector("#manualLocationButton"),
       nearestButton: document.querySelector("#nearestButton"),
       selectedPointType: document.querySelector("#selectedPointType"),
       pointExplanation: document.querySelector("#pointExplanation"),
@@ -210,6 +212,11 @@ class EcoQuestMapController {
   bindEvents() {
     this.elements.locateButton.addEventListener("click", () => this.requestLocation(true));
     this.elements.nearestButton.addEventListener("click", () => this.requestLocation(true));
+    this.elements.manualLocationButton.addEventListener("click", () => {
+      this.isChoosingManualLocation = true;
+      this.elements.manualLocationButton.classList.add("is-active");
+      this.setStatus("Tocá el mapa en el lugar donde estás para marcar tu ubicación manualmente.");
+    });
     this.elements.travelMode.addEventListener("change", () => this.updateDirections());
     this.elements.verifyButton.addEventListener("click", () => this.verifyRecycling());
     this.elements.expandMapButton.addEventListener("click", () => this.toggleExpandedMap());
@@ -223,6 +230,21 @@ class EcoQuestMapController {
 
   createMainMap() {
     this.mainMap = this.createMap("ecoMap");
+    this.mainMap?.map.on("click", (event) => {
+      if (!this.isChoosingManualLocation || event.originalEvent.target.closest(".leaflet-marker-icon")) return;
+      this.isChoosingManualLocation = false;
+      this.elements.manualLocationButton.classList.remove("is-active");
+      this.currentPosition = { lat: event.latlng.lat, lng: event.latlng.lng, accuracy: 100 };
+      this.locationUpdatedAt = Date.now();
+      this.locationSource = "manual";
+      this.findNearestAfterLocation = true;
+      this.elements.locateButton.classList.add("is-active");
+      this.elements.userLocationBadge.hidden = false;
+      this.elements.userLocationBadge.lastChild.textContent = " Ubicación elegida";
+      this.updateUserMarkers();
+      if (this.pointsLoaded) this.renderLocationResult();
+      else this.setStatus("Ubicación elegida. Cargando contenedores cercanos...");
+    });
   }
 
   createMap(elementId) {
@@ -234,7 +256,7 @@ class EcoQuestMapController {
     const map = L.map(elementId, {
       zoomControl: false,
       attributionControl: true,
-    }).setView(MAP_CENTER, 12);
+    }).setView(MAP_CENTER, 14);
 
     L.tileLayer(OFFICIAL_BASE_LAYER_URL, {
       tms: true,
@@ -302,12 +324,27 @@ class EcoQuestMapController {
 
   getMarkerIcon(point) {
     const special = point instanceof SpecialGreenPoint;
-    const color = point.isBlackStreetContainer ? "black" : special ? "special" : "green";
+    let color = "green";
+    let symbol = "♻︎";
+    let size = 24;
+
+    if (point.isBlackStreetContainer) {
+      color = "black";
+      symbol = "▣";
+    }
+
+    if (special) {
+      color = "special";
+      symbol = "★";
+      size = 28;
+    }
+
     return L.divIcon({
-      className: `eco-point-marker eco-point-${color}`,
-      html: `<span>${special ? "★" : point.isBlackStreetContainer ? "●" : "♻"}</span>`,
-      iconSize: special ? [34, 34] : [28, 28],
-      iconAnchor: special ? [17, 17] : [14, 14],
+      className: `eco-point-marker eco-point-${color}${point.isStreetContainer ? " eco-point-street" : ""}`,
+      html: `<span aria-hidden="true">${symbol}</span>`,
+      iconSize: [size, size],
+      // El centro del símbolo coincide con la coordenada oficial del contenedor.
+      iconAnchor: [size / 2, size / 2],
     });
   }
 
@@ -396,7 +433,7 @@ class EcoQuestMapController {
     this.elements.specialPointInfo.hidden = !special;
     this.elements.pointExplanation.textContent = special
       ? "Es un lugar de entrega, no un contenedor común. Para residuos como pilas o electrónicos, consultá qué recibe y su horario de atención antes de ir."
-      : this.selectedPoint.isBlackStreetContainer ? "Para basura común. Separá los reciclables antes de depositarlos." : "Para materiales reciclables, limpios y secos.";
+      : this.selectedPoint.isBlackStreetContainer ? "Para basura común. Separá los reciclables antes de depositarlos." : "Este punto recibe reciclables limpios y secos.";
     try { sessionStorage.setItem("ecoquestSelectedPoint", this.selectedPoint.id); } catch { }
     this.updateDirections();
     this.elements.selectedPointName.textContent = this.selectedPoint.name;
@@ -442,6 +479,8 @@ class EcoQuestMapController {
 
   requestLocation(findNearest = false) {
     if (this.isLocating) return;
+    this.isChoosingManualLocation = false;
+    this.elements.manualLocationButton.classList.remove("is-active");
     this.findNearestAfterLocation = findNearest;
     if (!navigator.geolocation) {
       this.setStatus("Este navegador no permite verificar ubicacion.");
@@ -463,9 +502,9 @@ class EcoQuestMapController {
       (position) => this.handleLocationSuccess(position),
       (error) => this.handleLocationError(error),
       {
-        enableHighAccuracy: true,
-        timeout: 12000,
-        maximumAge: 15000,
+        enableHighAccuracy: false,
+        timeout: 8000,
+        maximumAge: 45000,
       },
     );
   }
@@ -473,6 +512,7 @@ class EcoQuestMapController {
   handleLocationSuccess(position) {
     this.finishLocating();
     this.locationUpdatedAt = Date.now();
+    this.locationSource = "gps";
     this.currentPosition = {
       lat: position.coords.latitude,
       lng: position.coords.longitude,
@@ -481,6 +521,7 @@ class EcoQuestMapController {
 
     this.elements.locateButton.classList.add("is-active");
     this.elements.userLocationBadge.hidden = false;
+    this.elements.userLocationBadge.lastChild.textContent = " Mi ubicación";
     this.updateUserMarkers();
 
     if (!this.pointsLoaded) {
@@ -493,20 +534,35 @@ class EcoQuestMapController {
 
   handleLocationError(error) {
     this.finishLocating();
-    this.currentPosition = null;
-    if (this.mainMap?.userMarker) { this.mainMap.map.removeLayer(this.mainMap.userMarker); this.mainMap.userMarker = null; }
-    if (this.mainMap?.accuracyCircle) { this.mainMap.map.removeLayer(this.mainMap.accuracyCircle); this.mainMap.accuracyCircle = null; }
-    this.selectedDistance = null;
-    this.renderSelectedPoint();
-    this.elements.locateButton.classList.remove("is-active");
-    this.elements.userLocationBadge.hidden = true;
-
-    if (error.code === error.PERMISSION_DENIED) {
-      this.setStatus("Permiti la ubicacion para validar el reciclaje.");
+    if (error.code === 1) {
+      this.currentPosition = null;
+      if (this.mainMap?.userMarker) { this.mainMap.map.removeLayer(this.mainMap.userMarker); this.mainMap.userMarker = null; }
+      if (this.mainMap?.accuracyCircle) { this.mainMap.map.removeLayer(this.mainMap.accuracyCircle); this.mainMap.accuracyCircle = null; }
+      this.selectedDistance = null;
+      this.renderSelectedPoint();
+      this.elements.locateButton.classList.remove("is-active");
+      this.elements.userLocationBadge.hidden = true;
+      this.setStatus("El navegador bloqueó la ubicación. Permití Ubicación para localhost en el ícono junto a la dirección y volvé a tocar Mi ubicación.");
       return;
     }
 
-    this.setStatus("No pude encontrar tu ubicacion. Proba otra vez.");
+    if (this.currentPosition) {
+      const lastUpdate = this.locationUpdatedAt ? new Date(this.locationUpdatedAt).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }) : "recién";
+      this.setStatus(`No pude actualizar la ubicación. El mapa conserva la última que encontró (${lastUpdate}). Revisá la ubicación de Windows y volvé a intentar.`);
+      return;
+    }
+
+    if (error.code === 2) {
+      this.setStatus("Windows no pudo encontrar tu ubicación. Activá los servicios de ubicación del dispositivo y volvé a intentar.");
+      return;
+    }
+
+    if (error.code === 3) {
+      this.setStatus("El navegador o Windows no devolvi\u00f3 tu ubicaci\u00f3n. Permit\u00ed Ubicaci\u00f3n para localhost en Chrome o Edge y activ\u00e1 Ubicaci\u00f3n de Windows; tambi\u00e9n pod\u00e9s tocar Elegir en el mapa para marcarla a mano.");
+      return;
+    }
+
+    this.setStatus("No pude encontrar tu ubicación. Revisá el permiso del navegador y volvé a intentar.");
   }
 
   finishLocating() {
@@ -527,18 +583,19 @@ class EcoQuestMapController {
       if (mapState.accuracyCircle) mapState.map.removeLayer(mapState.accuracyCircle);
       mapState.accuracyCircle = L.circle(latLng, { radius: this.currentPosition.accuracy, color: "#218bd0", weight: 1, fillOpacity: .08, interactive: false }).addTo(mapState.map);
       if (mapState.userMarker) {
-        mapState.userMarker.setLatLng(latLng);
+        mapState.userMarker.setLatLng(latLng)
+          .bindPopup(this.locationSource === "manual" ? "Ubicación elegida manualmente" : "Estás acá");
         return;
       }
 
       mapState.userMarker = L.circleMarker(latLng, {
-        radius: 9,
+        radius: 10,
         color: "#ffffff",
         fillColor: "#3ba9e4",
         fillOpacity: 1,
         weight: 3,
       })
-        .bindPopup("Estas aca")
+        .bindPopup(this.locationSource === "manual" ? "Ubicación elegida manualmente" : "Estás acá")
         .addTo(mapState.map);
     });
   }
@@ -644,6 +701,11 @@ class EcoQuestMapController {
       return;
     }
 
+    if (!window.EcoQuestAccount?.profile) {
+      this.setStatus("Como invitada podés explorar el mapa, pero no se guardan escaneos ni se suma XP. Iniciá sesión para registrar el progreso.");
+      return;
+    }
+
     const awardableScans = pendingScans.filter((scan) => nearest.point.accepts(scan.container));
 
     if (awardableScans.length === 0) {
@@ -659,6 +721,7 @@ class EcoQuestMapController {
         const result = await window.EcoQuestAccount.request("/api/ranking/verify", { method: "POST", body: JSON.stringify({ scanIds, pointId: nearest.point.id, ...this.currentPosition }) });
         window.EcoQuestAccount.applyProfile(result.profile);
         this.store.writeJson(this.store.pendingKey, this.store.readPendingScans().filter(scan => !scanIds.includes(scan.serverScanId)));
+        await window.EcoQuestAccount.refresh();
         this.renderProgress(); this.setStatus(`Reciclaje verificado: +${result.awardedPoints} XP. Ranking actualizado.`);
       } catch (error) { this.setStatus(error.message); }
       finally { this.verifying = false; this.elements.verifyButton.disabled = false; }

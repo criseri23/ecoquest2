@@ -23,6 +23,16 @@ public sealed class UsuarioRepository : IUsuarioRepository
                 cancellationToken);
     }
 
+    public async Task<List<Usuario>> ObtenerPorNombreAsync(
+        string nombre,
+        CancellationToken cancellationToken)
+    {
+        var buscado = nombre.Trim().ToLowerInvariant();
+        return await context.Usuarios
+            .Where(usuario => usuario.Nombre.ToLower() == buscado)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AgregarAsync(
         Usuario usuario,
         CancellationToken cancellationToken)

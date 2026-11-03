@@ -5,13 +5,11 @@ formulario.addEventListener('submit', async event => {
   const boton = formulario.querySelector('button');
   boton.disabled = true;
   mensaje.textContent = 'Ingresando…';
-  const email = formulario.elements.email.value.trim();
+  const identifier = formulario.elements.email.value.trim();
   const contraseña = formulario.elements.password.value;
-  // Las cuentas anteriores todavía pueden entrar por su nombre.
-  const anterior = !email.includes('@');
   try {
-    const datos = await window.EcoQuestAccount.request(anterior ? '/api/ranking/login' : '/api/auth/login', {
-      method: 'POST', body: JSON.stringify(anterior ? {name: email, password: contraseña} : {email, contraseña})
+    const datos = await window.EcoQuestAccount.request('/api/auth/login', {
+      method: 'POST', body: JSON.stringify({email: identifier, contraseña})
     });
     window.EcoQuestAccount.save(datos);
     location.href = 'inicio.html';

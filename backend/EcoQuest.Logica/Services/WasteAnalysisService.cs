@@ -42,26 +42,43 @@ public sealed class WasteAnalysisService : IWasteAnalysisService
         var payload = CreateGeminiPayload(imageInput);
         var failedAttempts = new List<string>();
 
-        foreach (var model in GetCandidateModels())
+        foreach (var model in GetCandidateModels().Take(3))
         {
             var requestUrl = CreateGeminiRequestUrl(model, apiKey);
             using var geminiRequest = new HttpRequestMessage(HttpMethod.Post, requestUrl);
             geminiRequest.Content = JsonContent.Create(payload);
 
-            using var response = await client.SendAsync(geminiRequest, cancellationToken);
-            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-
-            if (response.IsSuccessStatusCode)
+            using var attemptTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var timeoutSeconds = model == "gemini-3.1-flash-lite" ? 11 :
+                model == "gemini-3.6-flash" ? 12 :
+                model == "gemini-3.5-flash-lite" ? 8 : 12;
+            attemptTimeout.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
+            HttpResponseMessage response;
+            string responseBody;
+            try
             {
-                return WasteAnalysisParser.Parse(responseBody);
+                response = await client.SendAsync(geminiRequest, attemptTimeout.Token);
+                using (response)
+                {
+                    responseBody = await response.Content.ReadAsStringAsync(attemptTimeout.Token);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return WasteAnalysisParser.Parse(responseBody);
+                    }
+
+                    var errorMessage = GeminiErrorParser.Parse(responseBody);
+                    failedAttempts.Add($"{model}: {errorMessage}");
+
+                    if (!IsRetryableProviderFailure(response.StatusCode, errorMessage))
+                    {
+                        throw new WasteAnalysisProviderException($"Modelo {model}: {errorMessage}");
+                    }
+                }
             }
-
-            var errorMessage = GeminiErrorParser.Parse(responseBody);
-            failedAttempts.Add($"{model}: {errorMessage}");
-
-            if (!IsRetryableProviderFailure(response.StatusCode, errorMessage))
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                throw new WasteAnalysisProviderException($"Modelo {model}: {errorMessage}");
+                failedAttempts.Add($"{model}: superó el límite de {timeoutSeconds} segundos");
             }
         }
 
@@ -83,12 +100,10 @@ public sealed class WasteAnalysisService : IWasteAnalysisService
 
         models.AddRange(new[]
         {
-            "gemini-3.5-flash-lite",
-            "gemini-3.1-flash-lite",
-            "gemini-3.7-flash",
             "gemini-3.6-flash",
-            "gemini-2.5-flash-lite",
-            "gemini-2.5-flash",
+            "gemini-3.1-flash-lite",
+            "gemini-3.5-flash-lite",
+            "gemini-3.8-flash",
             "gemini-flash-latest",
         });
 
@@ -184,9 +199,9 @@ public sealed class WasteAnalysisService : IWasteAnalysisService
             },
             generationConfig = new
             {
-                temperature = 0.1,
                 maxOutputTokens = 1024,
                 responseMimeType = "application/json",
+                thinkingConfig = new { thinkingLevel = "low" },
             },
         };
 

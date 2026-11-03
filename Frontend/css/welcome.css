@@ -1,0 +1,69 @@
+.welcome-shell {
+  align-items: center;
+  justify-content: center;
+  padding: max(22px, env(safe-area-inset-top)) 20px max(22px, env(safe-area-inset-bottom));
+  background: radial-gradient(ellipse at 50% 20%, #e5f4b8 0%, #a9d66b 47%, #6eaa4a 100%);
+}
+
+.welcome-card {
+  width: min(100%, 370px);
+  padding: 24px 24px 22px;
+  border: 1px solid #ffffffb8;
+  border-radius: 30px;
+  background: linear-gradient(160deg, #fffef6 0%, #f3f8df 100%);
+  box-shadow: 0 24px 55px #23451d40, inset 0 1px #fff;
+  text-align: center;
+}
+
+.welcome-logo { display: block; width: min(62%, 190px); height: auto; margin: 0 auto 8px; }
+.welcome-art {
+  position: relative;
+  display: grid;
+  width: 164px;
+  height: 142px;
+  place-items: center;
+  margin: 0 auto 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #deefb4 0 55%, #edf5d8 56% 69%, transparent 70%);
+}
+.welcome-art img { width: 94px; height: 94px; object-fit: contain; filter: drop-shadow(0 8px 4px #38652230); animation: welcome-float 2.8s ease-in-out infinite; }
+.welcome-leaf { position: absolute; color: #83ad48; font-size: 24px; }
+.welcome-leaf-one { top: 15px; left: 12px; transform: rotate(-18deg); }
+.welcome-leaf-two { right: 5px; bottom: 17px; color: #dfb94e; font-size: 28px; }
+.welcome-eyebrow { margin: 5px 0 7px; color: #63833c; font-size: 10px; font-weight: 900; letter-spacing: .13em; }
+.welcome-card h1 { margin: 0; color: #1d5638; font-size: clamp(25px, 7vw, 32px); line-height: 1.08; }
+.welcome-copy { max-width: 270px; margin: 10px auto 18px; color: #5f6d4d; font-size: 14px; line-height: 1.5; }
+.welcome-primary, .welcome-option, .welcome-guest {
+  display: flex;
+  width: 100%;
+  min-height: 49px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+}
+.welcome-primary { gap: 10px; border: 0; background: #276b46; box-shadow: 0 4px 0 #17472e; color: #fffef2; }
+.welcome-primary span { font-size: 20px; }
+.welcome-primary:hover, .welcome-option:hover, .welcome-guest:hover { transform: translateY(-2px); }
+.welcome-footnote { max-width: 260px; margin: 15px auto 0; color: #78806b; font-size: 11px; line-height: 1.4; }
+
+.choice-card { padding-top: 20px; }
+.choice-card .welcome-art { width: 130px; height: 105px; margin-top: 2px; }
+.choice-card .welcome-art img { width: 76px; height: 76px; }
+.choice-card .welcome-copy { margin: 8px auto 15px; }
+.choice-actions { display: grid; gap: 10px; margin-top: 16px; }
+.welcome-option { border: 1.5px solid #c1d39f; background: #fffef8; color: #28583a; }
+.welcome-guest { min-height: 42px; border: 0; background: transparent; color: #587442; font-size: 13px; }
+
+@keyframes welcome-float { 0%,100% { transform: translateY(2px) rotate(-2deg); } 50% { transform: translateY(-5px) rotate(2deg); } }
+@media (max-height: 690px) {
+  .welcome-card { padding: 15px 20px; }
+  .welcome-art { width: 135px; height: 112px; }
+  .welcome-art img { width: 78px; height: 78px; }
+  .choice-card .welcome-art { width: 110px; height: 86px; }
+}
+@media (prefers-reduced-motion: reduce) { .welcome-art img, .welcome-primary, .welcome-option, .welcome-guest { animation: none; transition: none; } }

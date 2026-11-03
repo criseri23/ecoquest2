@@ -110,7 +110,8 @@ namespace EcoQuest.Datos.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(254)
+                        .HasColumnType("varchar(254)");
 
                     b.Property<int>("Experiencia")
                         .HasColumnType("int");
@@ -130,6 +131,9 @@ namespace EcoQuest.Datos.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("Usuarios");
                 });

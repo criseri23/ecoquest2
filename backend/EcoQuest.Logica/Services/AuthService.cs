@@ -77,24 +77,23 @@ public sealed class AuthService : IAuthService
             return null;
         }
 
-        email = email.Trim().ToLowerInvariant();
-        if (email.Length > 254 || !System.Net.Mail.MailAddress.TryCreate(email, out var address) || address.Address != email)
-            return null;
-
-        var usuario = await usuarioRepository.ObtenerPorEmailAsync(
-            email,
-            cancellationToken);
-
-        if (usuario is null)
+        var identificador = email.Trim();
+        var candidatos = new List<Usuario>();
+        if (identificador.Contains('@'))
         {
-            return null;
+            identificador = identificador.ToLowerInvariant();
+            if (identificador.Length > 254 || !System.Net.Mail.MailAddress.TryCreate(identificador, out var address) || address.Address != identificador)
+                return null;
+            var usuario = await usuarioRepository.ObtenerPorEmailAsync(identificador, cancellationToken);
+            if (usuario is not null) candidatos.Add(usuario);
+        }
+        else
+        {
+            if (identificador.Length is < 3 or > 24) return null;
+            candidatos = await usuarioRepository.ObtenerPorNombreAsync(identificador, cancellationToken);
         }
 
-        var resultado = passwordHasher.VerifyHashedPassword(
-            usuario,
-            usuario.PasswordHash,
-            contraseña);
-
-        return resultado != PasswordVerificationResult.Failed ? usuario : null;
+        return candidatos.FirstOrDefault(usuario =>
+            passwordHasher.VerifyHashedPassword(usuario, usuario.PasswordHash, contraseña) != PasswordVerificationResult.Failed);
     }
 }
