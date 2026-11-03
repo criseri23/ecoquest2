@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#184b35">
   <title>EcoQuest · Bienvenida</title>
   <link rel="stylesheet" href="../css/escanear.css?v=12">
-  <link rel="stylesheet" href="../css/welcome.css?v=1">
+  <link rel="stylesheet" href="../css/welcome.css?v=2">
 </head>
 <body>
   <main class="app-shell welcome-shell">
@@ -20,11 +20,15 @@
       <p class="welcome-eyebrow">PEQUEÑAS ACCIONES, UN GRAN CAMBIO</p>
       <h1 id="welcomeTitle">¡Hola, ecoexploradora!</h1>
       <p class="welcome-copy">Reciclá, descubrí puntos verdes y avanzá a tu ritmo.</p>
-      <button id="startButton" class="welcome-primary" type="button">Empezar <span aria-hidden="true">→</span></button>
-      <p class="welcome-footnote">Elegí después si querés usar una cuenta o entrar como invitada.</p>
+      <nav class="choice-actions welcome-entry-actions" aria-label="Opciones para entrar a EcoQuest">
+        <a class="welcome-primary" href="login.html" data-account-entry>Iniciar sesión</a>
+        <a class="welcome-option" href="registro.html" data-account-entry>Registrarse</a>
+        <button id="guestButton" class="welcome-guest" type="button">Entrar como invitada</button>
+      </nav>
+      <p class="welcome-footnote">Con tu cuenta podés volver a iniciar sesión. Como invitada, el progreso no se guarda.</p>
     </section>
   </main>
   <script src="../js/ecoquest-account.js?v=5"></script>
-  <script src="../js/click.js?v=3"></script>
+  <script src="../js/click.js?v=4"></script>
 </body>
 </html>

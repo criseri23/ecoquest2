@@ -52,6 +52,9 @@
 .welcome-footnote { max-width: 260px; margin: 15px auto 0; color: #78806b; font-size: 11px; line-height: 1.4; }
 
 .choice-card { padding-top: 20px; }
+.welcome-entry-actions { margin-top: 18px; }
+.welcome-entry-actions .welcome-primary { gap: 0; }
+.welcome-entry-actions a { box-sizing: border-box; }
 .choice-card .welcome-art { width: 130px; height: 105px; margin-top: 2px; }
 .choice-card .welcome-art img { width: 76px; height: 76px; }
 .choice-card .welcome-copy { margin: 8px auto 15px; }
@@ -65,5 +68,6 @@
   .welcome-art { width: 135px; height: 112px; }
   .welcome-art img { width: 78px; height: 78px; }
   .choice-card .welcome-art { width: 110px; height: 86px; }
+  .welcome-entry-actions { gap: 8px; margin-top: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .welcome-art img, .welcome-primary, .welcome-option, .welcome-guest { animation: none; transition: none; } }
