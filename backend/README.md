@@ -1,5 +1,7 @@
 # EcoQuest
 
+La guía completa para **descargar el ZIP, crear la base ecoquest, configurar MySQL y Gemini y ejecutar el proyecto** está en el [README principal](../README.md). Los comandos de la sección siguiente se ejecutan desde la raíz del proyecto, no desde esta carpeta backend.
+
 ## Para iniciar
 
 1. Abrí XAMPP y encendé **MySQL**. Apache solo hace falta para abrir phpMyAdmin.
