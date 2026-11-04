@@ -48,8 +48,6 @@ Abrí `backend/EcoQuestAPI/appsettings.json` y revisá `ConnectionStrings:EcoQue
 }
 ```
 
-Este fragmento va dentro del JSON existente: conservá las demás opciones. Si MySQL tiene otra contraseña, usuario o puerto, adaptá esos valores. No publiques credenciales privadas.
-
 ## 4. Ejecutar el proyecto
 
 Abrí PowerShell en la carpeta raíz **EcoQuest**. Podés escribir `powershell` en la barra de direcciones del Explorador. Ejecutá por separado:
@@ -102,6 +100,7 @@ La pantalla **Mascota** muestra una animación y el aviso **Próximamente**: no 
 
 ## Documentación
 
+- [EcoQuest prueba IA — video](docs/ecoquest-prueba-ia.mp4)
 - [Documentación completa en PDF](docs/EcoQuest_documentacion_revisada.pdf)
 - [Documento editable en Word](docs/EcoQuest_documentacion_revisada.docx)
 - [Swagger de la API](http://localhost:5228/swagger), disponible con el perfil de desarrollo y la API iniciada.
